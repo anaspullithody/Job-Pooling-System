@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
-import { requireAdminOrAccountant, requireSuperAdmin } from "@/lib/auth/clerk";
-import { updateJobSchema } from "@/features/jobs/schemas/job";
-import { z } from "zod";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { requireAdminOrAccountant, requireSuperAdmin } from '@/lib/auth/clerk';
+import { updateJobSchema } from '@/features/jobs/schemas/job';
+import { z } from 'zod';
 
 // GET /api/jobs/[id] - Get single job
 export async function GET(
@@ -17,20 +17,20 @@ export async function GET(
     const job = await prisma.job.findFirst({
       where: {
         id,
-        deletedAt: null,
+        deletedAt: null
       },
       include: {
         client: {
           include: {
-            contacts: true,
-          },
+            contacts: true
+          }
         },
         supplier: {
           include: {
             contacts: true,
             supplierCategories: true,
-            supplierVehicles: true,
-          },
+            supplierVehicles: true
+          }
         },
         jobLogs: {
           include: {
@@ -38,30 +38,30 @@ export async function GET(
               select: {
                 id: true,
                 email: true,
-                phone: true,
-              },
-            },
+                phone: true
+              }
+            }
           },
           orderBy: {
-            createdAt: "desc",
-          },
+            createdAt: 'desc'
+          }
         },
-        invoice: true,
-      },
+        invoice: true
+      }
     });
 
     if (!job) {
-      return NextResponse.json({ error: "Job not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
     return NextResponse.json(job);
   } catch (error: any) {
-    if (error.message === "Unauthorized") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error("Error fetching job:", error);
+    console.error('Error fetching job:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -82,12 +82,12 @@ export async function PATCH(
     const existingJob = await prisma.job.findFirst({
       where: {
         id,
-        deletedAt: null,
-      },
+        deletedAt: null
+      }
     });
 
     if (!existingJob) {
-      return NextResponse.json({ error: "Job not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
     const job = await prisma.job.update({
@@ -96,32 +96,35 @@ export async function PATCH(
         ...data,
         price: data.price !== undefined ? data.price : undefined,
         taxAmount: data.taxAmount !== undefined ? data.taxAmount : undefined,
-        totalAmount: data.totalAmount !== undefined ? data.totalAmount : undefined,
+        totalAmount:
+          data.totalAmount !== undefined ? data.totalAmount : undefined
       },
       include: {
         client: {
           select: {
             id: true,
-            name: true,
-          },
+            name: true
+          }
         },
         supplier: {
           select: {
             id: true,
-            name: true,
-          },
-        },
-      },
+            name: true
+          }
+        }
+      }
     });
 
     // Create job log for status change
     if (data.status && data.status !== existingJob.status) {
-      const { userId } = await import("@clerk/nextjs/server").then((m) => m.auth());
+      const { userId } = await import('@clerk/nextjs/server').then((m) =>
+        m.auth()
+      );
       if (userId) {
         const user = await prisma.user.findFirst({
           where: {
             // Find user by Clerk ID - adjust as needed
-          },
+          }
         });
 
         if (user) {
@@ -129,9 +132,9 @@ export async function PATCH(
             data: {
               jobId: job.id,
               actorId: user.id,
-              action: "STATUS_CHANGED",
-              notes: `Status changed from ${existingJob.status} to ${data.status}`,
-            },
+              action: 'STATUS_CHANGED',
+              notes: `Status changed from ${existingJob.status} to ${data.status}`
+            }
           });
         }
       }
@@ -141,16 +144,16 @@ export async function PATCH(
   } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Validation error", details: error.errors },
+        { error: 'Validation error', details: error.issues },
         { status: 400 }
       );
     }
-    if (error.message === "Unauthorized") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error("Error updating job:", error);
+    console.error('Error updating job:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -169,20 +172,19 @@ export async function DELETE(
     const job = await prisma.job.update({
       where: { id },
       data: {
-        deletedAt: new Date(),
-      },
+        deletedAt: new Date()
+      }
     });
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    if (error.message === "Unauthorized") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error("Error deleting job:", error);
+    console.error('Error deleting job:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-

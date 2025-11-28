@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
-import { verifyDriverToken } from "@/lib/auth/driver";
-import { cookies } from "next/headers";
-import { JobStatus } from "@prisma/client";
-import { z } from "zod";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { verifyDriverToken } from '@/lib/auth/driver';
+import { cookies } from 'next/headers';
+import { JobStatus } from '@/types/job';
+import { z } from 'zod';
 
 const updateStatusSchema = z.object({
-  status: z.nativeEnum(JobStatus),
+  status: z.nativeEnum(JobStatus)
 });
 
 // PATCH /api/driver/jobs/[id]/status - Update job status (driver)
@@ -16,15 +16,15 @@ export async function PATCH(
 ) {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get("driver_token")?.value;
+    const token = cookieStore.get('driver_token')?.value;
 
     if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const payload = verifyDriverToken(token);
     if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     const { id } = await params;
@@ -35,28 +35,28 @@ export async function PATCH(
     const job = await prisma.job.findFirst({
       where: {
         id,
-        deletedAt: null,
-      },
+        deletedAt: null
+      }
     });
 
     if (!job) {
-      return NextResponse.json({ error: "Job not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
     // Verify status transition is valid
-    const validTransitions: Record<JobStatus, JobStatus[]> = {
-      IN_POOL: [],
-      ASSIGNED: [JobStatus.STARTED],
-      STARTED: [JobStatus.PICKED],
-      PICKED: [JobStatus.COMPLETED],
-      COMPLETED: [],
-      CANCELLED: [],
-      FAILED: [],
+    const validTransitions: Partial<Record<JobStatus, JobStatus[]>> = {
+      [JobStatus.IN_POOL]: [],
+      [JobStatus.ASSIGNED]: [JobStatus.STARTED],
+      [JobStatus.STARTED]: [JobStatus.PICKED],
+      [JobStatus.PICKED]: [JobStatus.COMPLETED],
+      [JobStatus.COMPLETED]: [],
+      [JobStatus.CANCELLED]: [],
+      [JobStatus.FAILED]: []
     };
 
-    if (!validTransitions[job.status]?.includes(status)) {
+    if (!validTransitions[job.status as JobStatus]?.includes(status)) {
       return NextResponse.json(
-        { error: "Invalid status transition" },
+        { error: 'Invalid status transition' },
         { status: 400 }
       );
     }
@@ -64,7 +64,7 @@ export async function PATCH(
     // Update job status
     const updatedJob = await prisma.job.update({
       where: { id },
-      data: { status },
+      data: { status }
     });
 
     // Create job log
@@ -72,24 +72,23 @@ export async function PATCH(
       data: {
         jobId: id,
         actorId: payload.userId,
-        action: "STATUS_CHANGED",
-        notes: `Status changed from ${job.status} to ${status} by driver`,
-      },
+        action: 'STATUS_CHANGED',
+        notes: `Status changed from ${job.status} to ${status} by driver`
+      }
     });
 
     return NextResponse.json({ job: updatedJob });
   } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Validation error", details: error.errors },
+        { error: 'Validation error', details: error.issues },
         { status: 400 }
       );
     }
-    console.error("Error updating job status:", error);
+    console.error('Error updating job status:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-

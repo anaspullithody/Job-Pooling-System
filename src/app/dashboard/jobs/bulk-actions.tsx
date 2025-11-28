@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { JobStatus } from "@prisma/client";
-import { Loader2, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+  SelectValue
+} from '@/components/ui/select';
+import { JobStatus } from '@/types/job';
+import { Loader2, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const statusOptions: { value: JobStatus; label: string }[] = [
-  { value: JobStatus.ASSIGNED, label: "Assigned" },
-  { value: JobStatus.STARTED, label: "Started" },
-  { value: JobStatus.PICKED, label: "Picked" },
-  { value: JobStatus.COMPLETED, label: "Completed" },
-  { value: JobStatus.CANCELLED, label: "Cancelled" },
-  { value: JobStatus.FAILED, label: "Failed" },
+  { value: JobStatus.ASSIGNED, label: 'Assigned' },
+  { value: JobStatus.STARTED, label: 'Started' },
+  { value: JobStatus.PICKED, label: 'Picked' },
+  { value: JobStatus.COMPLETED, label: 'Completed' },
+  { value: JobStatus.CANCELLED, label: 'Cancelled' },
+  { value: JobStatus.FAILED, label: 'Failed' }
 ];
 
 interface BulkActionsProps {
@@ -29,38 +29,38 @@ interface BulkActionsProps {
 
 export function BulkActions({
   selectedJobIds,
-  onClearSelection,
+  onClearSelection
 }: BulkActionsProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<JobStatus | "">("");
+  const [selectedStatus, setSelectedStatus] = useState<JobStatus | ''>('');
 
   const handleBulkStatusChange = async () => {
     if (!selectedStatus || selectedJobIds.length === 0) return;
 
     setLoading(true);
     try {
-      const response = await fetch("/api/jobs/bulk", {
-        method: "POST",
+      const response = await fetch('/api/jobs/bulk', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           jobIds: selectedJobIds,
-          action: "status_change",
-          status: selectedStatus,
-        }),
+          action: 'status_change',
+          status: selectedStatus
+        })
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update jobs");
+        throw new Error('Failed to update jobs');
       }
 
       router.refresh();
       onClearSelection();
     } catch (error) {
-      console.error("Error updating jobs:", error);
-      alert("Failed to update jobs");
+      console.error('Error updating jobs:', error);
+      alert('Failed to update jobs');
     } finally {
       setLoading(false);
     }
@@ -77,26 +77,26 @@ export function BulkActions({
 
     setLoading(true);
     try {
-      const response = await fetch("/api/jobs/bulk", {
-        method: "POST",
+      const response = await fetch('/api/jobs/bulk', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           jobIds: selectedJobIds,
-          action: "delete",
-        }),
+          action: 'delete'
+        })
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete jobs");
+        throw new Error('Failed to delete jobs');
       }
 
       router.refresh();
       onClearSelection();
     } catch (error) {
-      console.error("Error deleting jobs:", error);
-      alert("Failed to delete jobs");
+      console.error('Error deleting jobs:', error);
+      alert('Failed to delete jobs');
     } finally {
       setLoading(false);
     }
@@ -107,18 +107,18 @@ export function BulkActions({
   }
 
   return (
-    <div className="flex items-center gap-4 p-4 border rounded-lg bg-muted">
-      <span className="text-sm font-medium">
+    <div className='bg-muted flex items-center gap-4 rounded-lg border p-4'>
+      <span className='text-sm font-medium'>
         {selectedJobIds.length} job(s) selected
       </span>
 
-      <div className="flex items-center gap-2">
+      <div className='flex items-center gap-2'>
         <Select
           value={selectedStatus}
           onValueChange={(value) => setSelectedStatus(value as JobStatus)}
         >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Change status" />
+          <SelectTrigger className='w-40'>
+            <SelectValue placeholder='Change status' />
           </SelectTrigger>
           <SelectContent>
             {statusOptions.map((option) => (
@@ -132,30 +132,29 @@ export function BulkActions({
         <Button
           onClick={handleBulkStatusChange}
           disabled={!selectedStatus || loading}
-          size="sm"
+          size='sm'
         >
           {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className='h-4 w-4 animate-spin' />
           ) : (
-            "Update Status"
+            'Update Status'
           )}
         </Button>
       </div>
 
       <Button
-        variant="destructive"
+        variant='destructive'
         onClick={handleBulkDelete}
         disabled={loading}
-        size="sm"
+        size='sm'
       >
-        <Trash2 className="mr-2 h-4 w-4" />
+        <Trash2 className='mr-2 h-4 w-4' />
         Delete
       </Button>
 
-      <Button variant="outline" onClick={onClearSelection} size="sm">
+      <Button variant='outline' onClick={onClearSelection} size='sm'>
         Clear Selection
       </Button>
     </div>
   );
 }
-

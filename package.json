@@ -7,7 +7,7 @@
     "url": "https://github.com/Kiranism"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "NODE_OPTIONS='--no-experimental-strip-types' next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -16,7 +16,7 @@
     "format": "prettier --write .",
     "format:check": "prettier -c -w .",
     "prepare": "husky",
-    "db:generate": "prisma generate",
+    "db:generate": "prisma generate && node scripts/fix-prisma-client.js",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio"
@@ -119,15 +119,18 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "22.10.2",
     "@types/nodemailer": "^7.0.4",
+    "@types/pdfkit": "^0.17.4",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.2",
     "@types/sort-by": "^1.2.3",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^6.11.0",
+    "dotenv": "^17.2.3",
     "husky": "^9.1.7",
     "lint-staged": "^15.2.11",
     "prettier": "3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.11",
+    "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
     "tw-animate-css": "^1.2.4"
   }

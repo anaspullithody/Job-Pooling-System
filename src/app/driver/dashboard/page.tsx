@@ -1,33 +1,33 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, LogOut } from "lucide-react";
-import { format } from "date-fns";
-import { zonedTimeToUtc } from "date-fns-tz";
-import { JobStatus } from "@prisma/client";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, LogOut } from 'lucide-react';
+import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
+import { JobStatus } from '@/types/job';
 
 const statusColors: Record<JobStatus, string> = {
-  IN_POOL: "bg-gray-500",
-  ASSIGNED: "bg-blue-500",
-  STARTED: "bg-yellow-500",
-  PICKED: "bg-orange-500",
-  COMPLETED: "bg-green-500",
-  CANCELLED: "bg-red-500",
-  FAILED: "bg-red-600",
+  IN_POOL: 'bg-gray-500',
+  ASSIGNED: 'bg-blue-500',
+  STARTED: 'bg-yellow-500',
+  PICKED: 'bg-orange-500',
+  COMPLETED: 'bg-green-500',
+  CANCELLED: 'bg-red-500',
+  FAILED: 'bg-red-600'
 };
 
 const statusLabels: Record<JobStatus, string> = {
-  IN_POOL: "In Pool",
-  ASSIGNED: "Assigned",
-  STARTED: "Started",
-  PICKED: "Picked",
-  COMPLETED: "Completed",
-  CANCELLED: "Cancelled",
-  FAILED: "Failed",
+  IN_POOL: 'In Pool',
+  ASSIGNED: 'Assigned',
+  STARTED: 'Started',
+  PICKED: 'Picked',
+  COMPLETED: 'Completed',
+  CANCELLED: 'Cancelled',
+  FAILED: 'Failed'
 };
 
 const nextStatusMap: Record<JobStatus, JobStatus | null> = {
@@ -37,7 +37,7 @@ const nextStatusMap: Record<JobStatus, JobStatus | null> = {
   PICKED: JobStatus.COMPLETED,
   COMPLETED: null,
   CANCELLED: null,
-  FAILED: null,
+  FAILED: null
 };
 
 interface Job {
@@ -70,9 +70,9 @@ export default function DriverDashboardPage() {
 
   const fetchCurrentJob = async () => {
     try {
-      const response = await fetch("/api/driver/jobs/current");
+      const response = await fetch('/api/driver/jobs/current');
       if (response.status === 401) {
-        router.push("/driver/login");
+        router.push('/driver/login');
         return;
       }
 
@@ -83,7 +83,7 @@ export default function DriverDashboardPage() {
         setJob(null);
       }
     } catch (error) {
-      console.error("Error fetching job:", error);
+      console.error('Error fetching job:', error);
     } finally {
       setLoading(false);
     }
@@ -95,51 +95,51 @@ export default function DriverDashboardPage() {
     setUpdating(true);
     try {
       const response = await fetch(`/api/driver/jobs/${job.id}/status`, {
-        method: "PATCH",
+        method: 'PATCH',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: newStatus })
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update status");
+        throw new Error('Failed to update status');
       }
 
       await fetchCurrentJob();
     } catch (error) {
-      console.error("Error updating status:", error);
-      alert("Failed to update status");
+      console.error('Error updating status:', error);
+      alert('Failed to update status');
     } finally {
       setUpdating(false);
     }
   };
 
   const handleLogout = async () => {
-    await fetch("/api/auth/driver/logout", { method: "POST" });
-    router.push("/driver/login");
+    await fetch('/api/auth/driver/logout', { method: 'POST' });
+    router.push('/driver/login');
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className='flex min-h-screen items-center justify-center'>
+        <Loader2 className='h-8 w-8 animate-spin' />
       </div>
     );
   }
 
   if (!job) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+      <div className='flex min-h-screen items-center justify-center p-4'>
+        <Card className='w-full max-w-md'>
           <CardHeader>
             <CardTitle>No Job Assigned</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground mb-4">
+            <p className='text-muted-foreground mb-4'>
               You don't have any jobs assigned for today.
             </p>
-            <Button onClick={fetchCurrentJob} variant="outline">
+            <Button onClick={fetchCurrentJob} variant='outline'>
               Refresh
             </Button>
           </CardContent>
@@ -151,100 +151,104 @@ export default function DriverDashboardPage() {
   const nextStatus = nextStatusMap[job.status];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-      <div className="max-w-2xl mx-auto space-y-4">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">My Job</h1>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
+    <div className='min-h-screen bg-gray-50 p-4 dark:bg-gray-900'>
+      <div className='mx-auto max-w-2xl space-y-4'>
+        <div className='flex items-center justify-between'>
+          <h1 className='text-2xl font-bold'>My Job</h1>
+          <Button variant='outline' size='sm' onClick={handleLogout}>
+            <LogOut className='mr-2 h-4 w-4' />
             Logout
           </Button>
         </div>
 
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className='flex items-center justify-between'>
               <CardTitle>Job Details</CardTitle>
               <Badge className={statusColors[job.status]}>
                 {statusLabels[job.status]}
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className='space-y-4'>
             <div>
-              <p className="text-sm text-muted-foreground">Guest Name</p>
-              <p className="font-medium text-lg">{job.guestName}</p>
+              <p className='text-muted-foreground text-sm'>Guest Name</p>
+              <p className='text-lg font-medium'>{job.guestName}</p>
             </div>
 
             <div>
-              <p className="text-sm text-muted-foreground">Contact</p>
-              <p className="font-medium">{job.guestContact}</p>
+              <p className='text-muted-foreground text-sm'>Contact</p>
+              <p className='font-medium'>{job.guestContact}</p>
             </div>
 
             <div>
-              <p className="text-sm text-muted-foreground">Pickup Location</p>
-              <p className="font-medium">{job.pickup}</p>
+              <p className='text-muted-foreground text-sm'>Pickup Location</p>
+              <p className='font-medium'>{job.pickup}</p>
             </div>
 
             <div>
-              <p className="text-sm text-muted-foreground">Drop Location</p>
-              <p className="font-medium">{job.drop}</p>
+              <p className='text-muted-foreground text-sm'>Drop Location</p>
+              <p className='font-medium'>{job.drop}</p>
             </div>
 
             {job.flight && (
               <div>
-                <p className="text-sm text-muted-foreground">Flight</p>
-                <p className="font-medium">{job.flight}</p>
+                <p className='text-muted-foreground text-sm'>Flight</p>
+                <p className='font-medium'>{job.flight}</p>
               </div>
             )}
 
             {job.category && (
               <div>
-                <p className="text-sm text-muted-foreground">Category</p>
-                <p className="font-medium">{job.category}</p>
+                <p className='text-muted-foreground text-sm'>Category</p>
+                <p className='font-medium'>{job.category}</p>
               </div>
             )}
 
             {job.vehicle && (
               <div>
-                <p className="text-sm text-muted-foreground">Vehicle</p>
-                <p className="font-medium">{job.vehicle}</p>
+                <p className='text-muted-foreground text-sm'>Vehicle</p>
+                <p className='font-medium'>{job.vehicle}</p>
               </div>
             )}
 
             {job.assignedPlate && (
               <div>
-                <p className="text-sm text-muted-foreground">Plate Number</p>
-                <p className="font-medium">{job.assignedPlate}</p>
+                <p className='text-muted-foreground text-sm'>Plate Number</p>
+                <p className='font-medium'>{job.assignedPlate}</p>
               </div>
             )}
 
             <div>
-              <p className="text-sm text-muted-foreground">Client</p>
-              <p className="font-medium">{job.client.name}</p>
+              <p className='text-muted-foreground text-sm'>Client</p>
+              <p className='font-medium'>{job.client.name}</p>
             </div>
 
             <div>
-              <p className="text-sm text-muted-foreground">Created</p>
-              <p className="font-medium">
+              <p className='text-muted-foreground text-sm'>Created</p>
+              <p className='font-medium'>
                 {format(
-                  zonedTimeToUtc(new Date(job.createdAt), "Asia/Dubai"),
-                  "MMM dd, yyyy HH:mm"
+                  formatInTimeZone(
+                    new Date(job.createdAt),
+                    'Asia/Dubai',
+                    'yyyy-MM-dd HH:mm'
+                  ),
+                  'MMM dd, yyyy HH:mm'
                 )}
               </p>
             </div>
 
             {nextStatus && (
-              <div className="pt-4 border-t">
+              <div className='border-t pt-4'>
                 <Button
-                  className="w-full"
-                  size="lg"
+                  className='w-full'
+                  size='lg'
                   onClick={() => handleStatusUpdate(nextStatus)}
                   disabled={updating}
                 >
                   {updating ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                       Updating...
                     </>
                   ) : (
@@ -259,4 +263,3 @@ export default function DriverDashboardPage() {
     </div>
   );
 }
-

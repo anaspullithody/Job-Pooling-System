@@ -1,6 +1,6 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
-import { prisma } from "../db/prisma";
-import { UserRole } from "@prisma/client";
+import { auth, currentUser } from '@clerk/nextjs/server';
+import { prisma } from '../db/prisma';
+import { UserRole } from '../../types/user';
 
 export async function getClerkUserRole(): Promise<UserRole | null> {
   const { userId } = await auth();
@@ -12,7 +12,7 @@ export async function getClerkUserRole(): Promise<UserRole | null> {
   // Find user in database by email
   const user = await prisma.user.findUnique({
     where: { email: clerkUser.emailAddresses[0].emailAddress },
-    select: { role: true },
+    select: { role: true }
   });
 
   return user?.role || null;
@@ -21,7 +21,7 @@ export async function getClerkUserRole(): Promise<UserRole | null> {
 export async function requireRole(allowedRoles: UserRole[]) {
   const role = await getClerkUserRole();
   if (!role || !allowedRoles.includes(role)) {
-    throw new Error("Unauthorized");
+    throw new Error('Unauthorized');
   }
   return role;
 }
@@ -33,4 +33,3 @@ export async function requireSuperAdmin() {
 export async function requireAdminOrAccountant() {
   return requireRole([UserRole.SUPER_ADMIN, UserRole.ACCOUNTANT]);
 }
-

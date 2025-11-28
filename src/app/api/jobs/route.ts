@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
-import { requireAdminOrAccountant } from "@/lib/auth/clerk";
-import { createJobSchema } from "@/features/jobs/schemas/job";
-import { JobStatus } from "@prisma/client";
-import { z } from "zod";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { requireAdminOrAccountant } from '@/lib/auth/clerk';
+import { createJobSchema } from '@/features/jobs/schemas/job';
+import { JobStatus } from '@/types/job';
+import { z } from 'zod';
 
 // GET /api/jobs - List jobs with filters
 export async function GET(request: NextRequest) {
@@ -11,18 +11,18 @@ export async function GET(request: NextRequest) {
     await requireAdminOrAccountant();
 
     const searchParams = request.nextUrl.searchParams;
-    const status = searchParams.get("status") as JobStatus | null;
-    const clientId = searchParams.get("clientId");
-    const supplierId = searchParams.get("supplierId");
-    const dateFrom = searchParams.get("dateFrom");
-    const dateTo = searchParams.get("dateTo");
-    const search = searchParams.get("search");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const status = searchParams.get('status') as JobStatus | null;
+    const clientId = searchParams.get('clientId');
+    const supplierId = searchParams.get('supplierId');
+    const dateFrom = searchParams.get('dateFrom');
+    const dateTo = searchParams.get('dateTo');
+    const search = searchParams.get('search');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
     const skip = (page - 1) * limit;
 
     const where: any = {
-      deletedAt: null, // Only non-deleted jobs
+      deletedAt: null // Only non-deleted jobs
     };
 
     if (status) {
@@ -49,10 +49,10 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { guestName: { contains: search, mode: "insensitive" } },
-        { guestContact: { contains: search, mode: "insensitive" } },
-        { pickup: { contains: search, mode: "insensitive" } },
-        { drop: { contains: search, mode: "insensitive" } },
+        { guestName: { contains: search, mode: 'insensitive' } },
+        { guestContact: { contains: search, mode: 'insensitive' } },
+        { pickup: { contains: search, mode: 'insensitive' } },
+        { drop: { contains: search, mode: 'insensitive' } }
       ];
     }
 
@@ -63,23 +63,23 @@ export async function GET(request: NextRequest) {
           client: {
             select: {
               id: true,
-              name: true,
-            },
+              name: true
+            }
           },
           supplier: {
             select: {
               id: true,
-              name: true,
-            },
-          },
+              name: true
+            }
+          }
         },
         orderBy: {
-          createdAt: "desc",
+          createdAt: 'desc'
         },
         skip,
-        take: limit,
+        take: limit
       }),
-      prisma.job.count({ where }),
+      prisma.job.count({ where })
     ]);
 
     return NextResponse.json({
@@ -88,16 +88,16 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit),
-      },
+        totalPages: Math.ceil(total / limit)
+      }
     });
   } catch (error: any) {
-    if (error.message === "Unauthorized") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error("Error fetching jobs:", error);
+    console.error('Error fetching jobs:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -117,32 +117,34 @@ export async function POST(request: NextRequest) {
         status: JobStatus.IN_POOL,
         price: data.price ? data.price : null,
         taxAmount: data.taxAmount ? data.taxAmount : null,
-        totalAmount: data.totalAmount ? data.totalAmount : null,
+        totalAmount: data.totalAmount ? data.totalAmount : null
       },
       include: {
         client: {
           select: {
             id: true,
-            name: true,
-          },
+            name: true
+          }
         },
         supplier: {
           select: {
             id: true,
-            name: true,
-          },
-        },
-      },
+            name: true
+          }
+        }
+      }
     });
 
     // Create job log
-    const { userId } = await import("@clerk/nextjs/server").then((m) => m.auth());
+    const { userId } = await import('@clerk/nextjs/server').then((m) =>
+      m.auth()
+    );
     if (userId) {
       const user = await prisma.user.findFirst({
         where: {
           // Find user by Clerk ID mapping - you may need to adjust this
           // For now, we'll use a placeholder
-        },
+        }
       });
 
       if (user) {
@@ -150,9 +152,9 @@ export async function POST(request: NextRequest) {
           data: {
             jobId: job.id,
             actorId: user.id,
-            action: "CREATED",
-            notes: "Job created",
-          },
+            action: 'CREATED',
+            notes: 'Job created'
+          }
         });
       }
     }
@@ -161,18 +163,17 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Validation error", details: error.errors },
+        { error: 'Validation error', details: error.issues },
         { status: 400 }
       );
     }
-    if (error.message === "Unauthorized") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error("Error creating job:", error);
+    console.error('Error creating job:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-

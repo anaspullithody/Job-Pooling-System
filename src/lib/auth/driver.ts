@@ -1,9 +1,9 @@
-import jwt from "jsonwebtoken";
-import { prisma } from "../db/prisma";
-import bcrypt from "bcryptjs";
-import { UserRole } from "@prisma/client";
+import jwt from 'jsonwebtoken';
+import { prisma } from '../db/prisma';
+import bcrypt from 'bcryptjs';
+import type { UserRole } from '@prisma/client';
 
-const JWT_SECRET = process.env.JWT_SECRET || "change-me-in-production";
+const JWT_SECRET = process.env.JWT_SECRET || 'change-me-in-production';
 
 export interface DriverTokenPayload {
   userId: string;
@@ -13,7 +13,7 @@ export interface DriverTokenPayload {
 
 export async function verifyDriverCredentials(phone: string, pin: string) {
   const user = await prisma.user.findUnique({
-    where: { phone },
+    where: { phone }
   });
 
   if (!user || user.role !== UserRole.DRIVER || !user.pinHash) {
@@ -32,11 +32,11 @@ export function generateDriverToken(userId: string, phone: string): string {
   const payload: DriverTokenPayload = {
     userId,
     phone,
-    role: UserRole.DRIVER,
+    role: UserRole.DRIVER
   };
 
   return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: "30d", // 30 days
+    expiresIn: '30d' // 30 days
   });
 }
 
@@ -52,4 +52,3 @@ export function verifyDriverToken(token: string): DriverTokenPayload | null {
 export async function hashPin(pin: string): Promise<string> {
   return bcrypt.hash(pin, 10);
 }
-

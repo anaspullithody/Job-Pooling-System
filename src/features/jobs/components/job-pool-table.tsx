@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo } from 'react';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -11,23 +11,23 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+  useReactTable
+} from '@tanstack/react-table';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { JobStatus } from "@prisma/client";
-import { useRouter } from "next/navigation";
-import { format } from "date-fns";
-import { zonedTimeToUtc } from "date-fns-tz";
+  TableRow
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { JobStatus } from '@/types/job';
+import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 
 interface Job {
   id: string;
@@ -51,28 +51,28 @@ interface Job {
 }
 
 const statusColors: Record<JobStatus, string> = {
-  IN_POOL: "bg-gray-500",
-  ASSIGNED: "bg-blue-500",
-  STARTED: "bg-yellow-500",
-  PICKED: "bg-orange-500",
-  COMPLETED: "bg-green-500",
-  CANCELLED: "bg-red-500",
-  FAILED: "bg-red-600",
+  IN_POOL: 'bg-gray-500',
+  ASSIGNED: 'bg-blue-500',
+  STARTED: 'bg-yellow-500',
+  PICKED: 'bg-orange-500',
+  COMPLETED: 'bg-green-500',
+  CANCELLED: 'bg-red-500',
+  FAILED: 'bg-red-600'
 };
 
 const statusLabels: Record<JobStatus, string> = {
-  IN_POOL: "In Pool",
-  ASSIGNED: "Assigned",
-  STARTED: "Started",
-  PICKED: "Picked",
-  COMPLETED: "Completed",
-  CANCELLED: "Cancelled",
-  FAILED: "Failed",
+  IN_POOL: 'In Pool',
+  ASSIGNED: 'Assigned',
+  STARTED: 'Started',
+  PICKED: 'Picked',
+  COMPLETED: 'Completed',
+  CANCELLED: 'Cancelled',
+  FAILED: 'Failed'
 };
 
 export function JobPoolTable({
   jobs,
-  onSelectionChange,
+  onSelectionChange
 }: {
   jobs: Job[];
   onSelectionChange?: (selectedIds: string[]) => void;
@@ -86,87 +86,89 @@ export function JobPoolTable({
   const columns: ColumnDef<Job>[] = useMemo(
     () => [
       {
-        id: "select",
+        id: 'select',
         header: ({ table }) => (
           <Checkbox
             checked={
               table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
+              (table.getIsSomePageRowsSelected() && 'indeterminate')
             }
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label="Select all"
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label='Select all'
           />
         ),
         cell: ({ row }) => (
           <Checkbox
             checked={row.getIsSelected()}
             onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
+            aria-label='Select row'
           />
         ),
         enableSorting: false,
-        enableHiding: false,
+        enableHiding: false
       },
       {
-        accessorKey: "guestName",
-        header: "Guest",
+        accessorKey: 'guestName',
+        header: 'Guest',
         cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("guestName")}</div>
-        ),
+          <div className='font-medium'>{row.getValue('guestName')}</div>
+        )
       },
       {
-        accessorKey: "guestContact",
-        header: "Contact",
+        accessorKey: 'guestContact',
+        header: 'Contact'
       },
       {
-        accessorKey: "client",
-        header: "Client",
-        cell: ({ row }) => row.original.client.name,
+        accessorKey: 'client',
+        header: 'Client',
+        cell: ({ row }) => row.original.client.name
       },
       {
-        accessorKey: "supplier",
-        header: "Supplier",
-        cell: ({ row }) => row.original.supplier?.name || "-",
+        accessorKey: 'supplier',
+        header: 'Supplier',
+        cell: ({ row }) => row.original.supplier?.name || '-'
       },
       {
-        accessorKey: "pickup",
-        header: "Pickup",
+        accessorKey: 'pickup',
+        header: 'Pickup'
       },
       {
-        accessorKey: "drop",
-        header: "Drop",
+        accessorKey: 'drop',
+        header: 'Drop'
       },
       {
-        accessorKey: "status",
-        header: "Status",
+        accessorKey: 'status',
+        header: 'Status',
         cell: ({ row }) => {
-          const status = row.getValue("status") as JobStatus;
+          const status = row.getValue('status') as JobStatus;
           return (
             <Badge className={statusColors[status]}>
               {statusLabels[status]}
             </Badge>
           );
-        },
+        }
       },
       {
-        accessorKey: "totalAmount",
-        header: "Total",
+        accessorKey: 'totalAmount',
+        header: 'Total',
         cell: ({ row }) => {
-          const amount = row.getValue("totalAmount") as number | null;
-          return amount ? `AED ${amount.toFixed(2)}` : "-";
-        },
+          const amount = row.getValue('totalAmount') as number | null;
+          return amount ? `AED ${amount.toFixed(2)}` : '-';
+        }
       },
       {
-        accessorKey: "createdAt",
-        header: "Created",
+        accessorKey: 'createdAt',
+        header: 'Created',
         cell: ({ row }) => {
-          const date = new Date(row.getValue("createdAt"));
+          const date = new Date(row.getValue('createdAt'));
           return format(
-            zonedTimeToUtc(date, "Asia/Dubai"),
-            "MMM dd, yyyy HH:mm"
+            formatInTimeZone(date, 'Asia/Dubai', 'yyyy-MM-dd HH:mm'),
+            'MMM dd, yyyy HH:mm'
           );
-        },
-      },
+        }
+      }
     ],
     []
   );
@@ -186,8 +188,8 @@ export function JobPoolTable({
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection,
-    },
+      rowSelection
+    }
   });
 
   // Notify parent of selection changes
@@ -201,8 +203,8 @@ export function JobPoolTable({
   }, [rowSelection, jobs, onSelectionChange]);
 
   return (
-    <div className="w-full">
-      <div className="rounded-md border">
+    <div className='w-full'>
+      <div className='rounded-md border'>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -225,9 +227,11 @@ export function JobPoolTable({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className="cursor-pointer"
-                  onClick={() => router.push(`/dashboard/jobs/${row.original.id}`)}
+                  data-state={row.getIsSelected() && 'selected'}
+                  className='cursor-pointer'
+                  onClick={() =>
+                    router.push(`/dashboard/jobs/${row.original.id}`)
+                  }
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -243,7 +247,7 @@ export function JobPoolTable({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className='h-24 text-center'
                 >
                   No jobs found.
                 </TableCell>
@@ -252,18 +256,18 @@ export function JobPoolTable({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
+      <div className='flex items-center justify-end space-x-2 py-4'>
         <Button
-          variant="outline"
-          size="sm"
+          variant='outline'
+          size='sm'
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
           Previous
         </Button>
         <Button
-          variant="outline"
-          size="sm"
+          variant='outline'
+          size='sm'
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
@@ -273,4 +277,3 @@ export function JobPoolTable({
     </div>
   );
 }
-
