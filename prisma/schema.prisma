@@ -1,0 +1,188 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ACCOUNTANT
+  DRIVER
+}
+
+enum CompanyKind {
+  CLIENT
+  SUPPLIER
+  OWN_FLEET
+}
+
+enum JobStatus {
+  IN_POOL
+  ASSIGNED
+  STARTED
+  PICKED
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  role      UserRole
+  email     String?  @unique
+  phone     String?  @unique
+  password  String?  // For admin users (hashed)
+  pinHash   String?  // For driver users (hashed PIN)
+  pinTemp   Boolean  @default(false) // True if PIN needs to be changed after reset
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  jobLogs JobLog[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([role])
+}
+
+model Company {
+  id        String      @id @default(cuid())
+  kind      CompanyKind
+  name      String
+  phone     String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  // Relations
+  contacts          Contact[]
+  supplierCategories SupplierCategory[]
+  supplierVehicles   SupplierVehicle[]
+  clientJobs         Job[]              @relation("ClientJobs")
+  supplierJobs       Job[]              @relation("SupplierJobs")
+
+  @@index([kind])
+  @@index([name])
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  companyId String
+  phone     String?
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+model SupplierCategory {
+  id          String   @id @default(cuid())
+  companyId   String
+  category    String
+  vehicleCount Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, category])
+  @@index([companyId])
+}
+
+model SupplierVehicle {
+  id         String   @id @default(cuid())
+  supplierId String
+  category   String
+  regNumber  String
+  model      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  supplier Company @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@index([supplierId])
+  @@index([category])
+  @@index([regNumber])
+}
+
+model Job {
+  id             String     @id @default(cuid())
+  clientId       String
+  supplierId     String?
+  guestName      String
+  guestContact   String
+  pickup         String
+  drop           String
+  flight         String?
+  category       String?
+  vehicle        String?
+  status         JobStatus  @default(IN_POOL)
+  price          Decimal?   @db.Decimal(10, 2)
+  taxAmount      Decimal?   @db.Decimal(10, 2)
+  totalAmount    Decimal?   @db.Decimal(10, 2)
+  failureReason  String?
+  driverName     String?
+  assignedPlate  String?
+  deletedAt      DateTime?  // Soft delete
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  // Relations
+  client   Company @relation("ClientJobs", fields: [clientId], references: [id], onDelete: Restrict)
+  supplier Company? @relation("SupplierJobs", fields: [supplierId], references: [id], onDelete: SetNull)
+  jobLogs  JobLog[]
+  invoice  Invoice?
+
+  @@index([status])
+  @@index([clientId])
+  @@index([supplierId])
+  @@index([createdAt])
+  @@index([deletedAt])
+}
+
+model JobLog {
+  id        String   @id @default(cuid())
+  jobId     String
+  actorId   String?  // User ID who performed the action
+  action    String   // e.g., "STATUS_CHANGED", "CREATED", "UPDATED"
+  notes     String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  job  Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([jobId])
+  @@index([actorId])
+  @@index([createdAt])
+}
+
+model Invoice {
+  id        String   @id @default(cuid())
+  jobId     String   @unique
+  invoiceNo String   @unique
+  issuedTo  String
+  amount    Decimal  @db.Decimal(10, 2)
+  tax       Decimal  @db.Decimal(10, 2)
+  total     Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([invoiceNo])
+}
