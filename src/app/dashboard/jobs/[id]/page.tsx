@@ -1,8 +1,8 @@
-import { notFound } from "next/navigation";
-import { prisma } from "@/lib/db/prisma";
-import { requireAdminOrAccountant, requireSuperAdmin } from "@/lib/auth/clerk";
-import { JobDetailView } from "@/features/jobs/components/job-detail-view";
-import { getClerkUserRole } from "@/lib/auth/clerk";
+import { notFound } from 'next/navigation';
+import { prisma } from '@/lib/db/prisma';
+import { requireAdminOrAccountant, requireSuperAdmin } from '@/lib/auth/clerk';
+import { JobDetailView } from '@/features/jobs/components/job-detail-view';
+import { getClerkUserRole } from '@/lib/auth/clerk';
 
 async function getJob(id: string) {
   await requireAdminOrAccountant();
@@ -10,20 +10,20 @@ async function getJob(id: string) {
   const job = await prisma.job.findFirst({
     where: {
       id,
-      deletedAt: null,
+      deletedAt: null
     },
     include: {
       client: {
         include: {
-          contacts: true,
-        },
+          contacts: true
+        }
       },
       supplier: {
         include: {
           contacts: true,
           supplierCategories: true,
-          supplierVehicles: true,
-        },
+          supplierVehicles: true
+        }
       },
       jobLogs: {
         include: {
@@ -31,23 +31,31 @@ async function getJob(id: string) {
             select: {
               id: true,
               email: true,
-              phone: true,
-            },
-          },
+              phone: true
+            }
+          }
         },
         orderBy: {
-          createdAt: "desc",
-        },
+          createdAt: 'desc'
+        }
       },
-      invoice: true,
-    },
+      invoice: true
+    }
   });
 
-  return job;
+  if (!job) return null;
+
+  // Serialize Decimal fields for client components
+  return {
+    ...job,
+    price: job.price ? Number(job.price) : 0,
+    taxAmount: job.taxAmount ? Number(job.taxAmount) : 0,
+    totalAmount: job.totalAmount ? Number(job.totalAmount) : 0
+  };
 }
 
 export default async function JobDetailPage({
-  params,
+  params
 }: {
   params: Promise<{ id: string }>;
 }) {
@@ -59,12 +67,11 @@ export default async function JobDetailPage({
     notFound();
   }
 
-  const canEdit = userRole === "SUPER_ADMIN";
+  const canEdit = userRole === 'SUPER_ADMIN';
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+    <div className='flex-1 space-y-4 p-4 pt-6 md:p-8'>
       <JobDetailView job={job as any} canEdit={canEdit} />
     </div>
   );
 }
-

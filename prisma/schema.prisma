@@ -122,18 +122,23 @@ model Job {
   supplierId     String?
   guestName      String
   guestContact   String
+  numberOfAdults Int?       // Number of adults in the booking
   pickup         String
   drop           String
   flight         String?
+  pickupTime     String?    // Pickup time (stored as string like "12:20 AM")
   category       String?
-  vehicle        String?
+  vehicleModel   String?    // Vehicle model name (e.g., "KIA", "MINI BUS")
+  vehicle        String?    // Vehicle plate number
   status         JobStatus  @default(IN_POOL)
   price          Decimal?   @db.Decimal(10, 2)
   taxAmount      Decimal?   @db.Decimal(10, 2)
   totalAmount    Decimal?   @db.Decimal(10, 2)
   failureReason  String?
-  driverName     String?
+  driverName     String?    // For own company: "Driver Name (Plate)", for supplier: supplier name
   assignedPlate  String?
+  remarks        String?    @db.Text // Notes/comments field
+  enteredBy      String?    // User ID or email who created the job
   deletedAt      DateTime?  // Soft delete
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt

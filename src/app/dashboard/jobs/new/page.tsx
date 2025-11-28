@@ -1,39 +1,47 @@
-import { JobForm } from "@/features/jobs/components/job-form";
-import { prisma } from "@/lib/db/prisma";
-import { requireSuperAdmin } from "@/lib/auth/clerk";
+import { JobForm } from '@/features/jobs/components/job-form';
+import { prisma } from '@/lib/db/prisma';
+import { requireSuperAdmin } from '@/lib/auth/clerk';
+import { currentUser } from '@clerk/nextjs/server';
 
 async function getFormData() {
   await requireSuperAdmin();
 
-  const [clients, suppliers, ownFleet] = await Promise.all([
+  const [clients, suppliers, ownFleet, user] = await Promise.all([
     prisma.company.findMany({
-      where: { kind: "CLIENT" },
-      orderBy: { name: "asc" },
+      where: { kind: 'CLIENT' },
+      orderBy: { name: 'asc' }
     }),
     prisma.company.findMany({
-      where: { kind: "SUPPLIER" },
+      where: { kind: 'SUPPLIER' },
       include: {
         supplierCategories: true,
-        supplierVehicles: true,
+        supplierVehicles: true
       },
-      orderBy: { name: "asc" },
+      orderBy: { name: 'asc' }
     }),
     prisma.company.findFirst({
-      where: { kind: "OWN_FLEET" },
+      where: { kind: 'OWN_FLEET' }
     }),
+    currentUser()
   ]);
 
-  return { clients, suppliers, ownFleet };
+  const userEmail = user?.emailAddresses?.[0]?.emailAddress || 'Unknown';
+
+  return { clients, suppliers, ownFleet, userEmail };
 }
 
 export default async function NewJobPage() {
-  const { clients, suppliers, ownFleet } = await getFormData();
+  const { clients, suppliers, ownFleet, userEmail } = await getFormData();
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <h2 className="text-3xl font-bold tracking-tight">Create New Job</h2>
-      <JobForm clients={clients} suppliers={suppliers} ownFleet={ownFleet} />
+    <div className='flex-1 space-y-4 p-4 pt-6 md:p-8'>
+      <h2 className='text-3xl font-bold tracking-tight'>Create New Job</h2>
+      <JobForm
+        clients={clients}
+        suppliers={suppliers}
+        ownFleet={ownFleet}
+        userEmail={userEmail}
+      />
     </div>
   );
 }
-

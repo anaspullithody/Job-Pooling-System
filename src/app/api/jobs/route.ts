@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db/prisma';
 import { requireAdminOrAccountant } from '@/lib/auth/clerk';
 import { createJobSchema } from '@/features/jobs/schemas/job';
 import { JobStatus } from '@/types/job';
+import { currentUser } from '@clerk/nextjs/server';
 import { z } from 'zod';
 
 // GET /api/jobs - List jobs with filters
@@ -111,13 +112,18 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = createJobSchema.parse(body);
 
+    // Get current user email for enteredBy field
+    const clerkUser = await currentUser();
+    const userEmail = clerkUser?.emailAddresses?.[0]?.emailAddress || 'Unknown';
+
     const job = await prisma.job.create({
       data: {
         ...data,
         status: JobStatus.IN_POOL,
         price: data.price ? data.price : null,
         taxAmount: data.taxAmount ? data.taxAmount : null,
-        totalAmount: data.totalAmount ? data.totalAmount : null
+        totalAmount: data.totalAmount ? data.totalAmount : null,
+        enteredBy: userEmail
       },
       include: {
         client: {

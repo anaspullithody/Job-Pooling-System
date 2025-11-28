@@ -28,8 +28,16 @@ const isProtectedRoute = createRouteMatcher([
 // Routes for driver (custom auth)
 const isDriverRoute = createRouteMatcher(['/driver(.*)']);
 
+// Signup route (disabled - redirect to sign-in)
+const isSignupRoute = createRouteMatcher(['/auth/sign-up(.*)']);
+
 export default clerkMiddleware(async (auth, req) => {
   const { pathname } = req.nextUrl;
+
+  // Redirect signup attempts to sign-in (signup disabled)
+  if (isSignupRoute(req)) {
+    return NextResponse.redirect(new URL('/auth/sign-in', req.url));
+  }
 
   // Handle driver routes with custom auth
   if (isDriverRoute(req)) {

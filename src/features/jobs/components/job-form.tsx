@@ -27,6 +27,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { Company } from '@prisma/client';
+import { format } from 'date-fns';
 
 interface JobFormProps {
   clients: Company[];
@@ -34,6 +35,7 @@ interface JobFormProps {
   ownFleet: Company | null;
   initialData?: any;
   jobId?: string;
+  userEmail?: string;
 }
 
 export function JobForm({
@@ -41,16 +43,14 @@ export function JobForm({
   suppliers,
   ownFleet,
   initialData,
-  jobId
+  jobId,
+  userEmail
 }: JobFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(
     initialData?.supplierId || null
   );
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [availableVehicles, setAvailableVehicles] = useState<any[]>([]);
-  const [availableCategories, setAvailableCategories] = useState<any[]>([]);
 
   const form = useForm<CreateJobInput>({
     resolver: zodResolver(createJobSchema),
@@ -58,31 +58,26 @@ export function JobForm({
       clientId: '',
       supplierId: '',
       guestName: '',
+      numberOfAdults: undefined,
       guestContact: '',
       pickup: '',
       drop: '',
       flight: '',
+      pickupTime: '',
       category: '',
+      vehicleModel: '',
       vehicle: '',
       price: undefined,
       taxAmount: undefined,
       totalAmount: undefined,
       driverName: '',
-      assignedPlate: ''
+      assignedPlate: '',
+      remarks: ''
     }
   });
 
   const selectedSupplier = suppliers.find((s) => s.id === selectedSupplierId);
   const isOwnFleet = selectedSupplierId === ownFleet?.id;
-
-  // Load categories and vehicles when supplier changes
-  useEffect(() => {
-    if (selectedSupplier) {
-      // Get categories from supplier
-      // This would need to be fetched from API or passed as prop
-      // For now, we'll use a simplified approach
-    }
-  }, [selectedSupplierId]);
 
   const onSubmit = async (data: CreateJobInput) => {
     setLoading(true);
@@ -124,6 +119,7 @@ export function JobForm({
           onSubmit={form.handleSubmit(onSubmit)}
           className='space-y-6'
         >
+          {/* Row 1: Client and Date */}
           <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
             <FormField
               control={form.control}
@@ -153,75 +149,19 @@ export function JobForm({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name='supplierId'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Supplier</FormLabel>
-                  <Select
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      setSelectedSupplierId(value);
-                      form.setValue('category', '');
-                      form.setValue('vehicle', '');
-                    }}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder='Select supplier' />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {ownFleet && (
-                        <SelectItem value={ownFleet.id}>Own Company</SelectItem>
-                      )}
-                      {suppliers.map((supplier) => (
-                        <SelectItem key={supplier.id} value={supplier.id}>
-                          {supplier.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <FormItem>
+              <FormLabel>Date</FormLabel>
+              <FormControl>
+                <Input
+                  value={format(new Date(), 'dd-MM-yyyy')}
+                  disabled
+                  className='bg-muted'
+                />
+              </FormControl>
+            </FormItem>
           </div>
 
-          {isOwnFleet && (
-            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-              <FormField
-                control={form.control}
-                name='driverName'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Driver Name *</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder='Enter driver name' />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name='assignedPlate'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Vehicle Plate *</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder='Enter plate number' />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          )}
-
+          {/* Row 2: Guest Name and Number of Adults */}
           <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
             <FormField
               control={form.control}
@@ -239,6 +179,33 @@ export function JobForm({
 
             <FormField
               control={form.control}
+              name='numberOfAdults'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>No. of Adults</FormLabel>
+                  <FormControl>
+                    <Input
+                      type='number'
+                      {...field}
+                      value={field.value || ''}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value ? parseInt(e.target.value) : undefined
+                        )
+                      }
+                      placeholder='e.g., 2+luggage'
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Row 3: Guest Contact and Pickup Location */}
+          <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+            <FormField
+              control={form.control}
               name='guestContact'
               render={({ field }) => (
                 <FormItem>
@@ -250,9 +217,7 @@ export function JobForm({
                 </FormItem>
               )}
             />
-          </div>
 
-          <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
             <FormField
               control={form.control}
               name='pickup'
@@ -260,7 +225,24 @@ export function JobForm({
                 <FormItem>
                   <FormLabel>Pickup Location *</FormLabel>
                   <FormControl>
-                    <Textarea {...field} placeholder='Enter pickup location' />
+                    <Input {...field} placeholder='e.g., Terminal 3' />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Row 4: Flight NO and Pickup Time */}
+          <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+            <FormField
+              control={form.control}
+              name='flight'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Flight NO</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder='e.g., EK 184' />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -269,12 +251,12 @@ export function JobForm({
 
             <FormField
               control={form.control}
-              name='drop'
+              name='pickupTime'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Drop Location *</FormLabel>
+                  <FormLabel>Pickup Time</FormLabel>
                   <FormControl>
-                    <Textarea {...field} placeholder='Enter drop location' />
+                    <Input {...field} placeholder='e.g., 12:20 AM' />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -282,20 +264,144 @@ export function JobForm({
             />
           </div>
 
+          {/* Row 5: Drop Location and Vehicle Type (Model) */}
+          <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+            <FormField
+              control={form.control}
+              name='drop'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Drop Location *</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder='e.g., Maison Mall Street' />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='vehicleModel'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Vehicle Type</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder='e.g., KIA, MINI BUS' />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Row 6: Supplier Selection */}
           <FormField
             control={form.control}
-            name='flight'
+            name='supplierId'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Flight Info</FormLabel>
+                <FormLabel>Supplier / Own Company</FormLabel>
+                <Select
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    setSelectedSupplierId(value);
+                    form.setValue('driverName', '');
+                    form.setValue('assignedPlate', '');
+                  }}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder='Select supplier or own company' />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {ownFleet && (
+                      <SelectItem value={ownFleet.id}>Own Company</SelectItem>
+                    )}
+                    {suppliers.map((supplier) => (
+                      <SelectItem key={supplier.id} value={supplier.id}>
+                        {supplier.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Row 7: Driver Details (conditional) */}
+          {isOwnFleet && (
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+              <FormField
+                control={form.control}
+                name='driverName'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Driver Name *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder='Enter driver name' />
+                    </FormControl>
+                    <FormDescription>For own company jobs</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='assignedPlate'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Vehicle Plate *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder='Enter plate number' />
+                    </FormControl>
+                    <FormDescription>
+                      Will be displayed as: Driver Name (Plate)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+
+          {selectedSupplierId && !isOwnFleet && (
+            <div className='bg-muted/50 rounded-md border p-4'>
+              <div className='text-sm'>
+                <span className='font-semibold'>Supplier Driver:</span>{' '}
+                {suppliers.find((s) => s.id === selectedSupplierId)?.name ||
+                  'N/A'}
+              </div>
+              <p className='text-muted-foreground mt-1 text-xs'>
+                Driver will be assigned by the supplier
+              </p>
+            </div>
+          )}
+
+          {/* Row 8: Remarks */}
+          <FormField
+            control={form.control}
+            name='remarks'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Remarks / Notes</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder='e.g., EK 201' />
+                  <Textarea
+                    {...field}
+                    placeholder='Enter any additional notes or remarks...'
+                    rows={3}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
+          {/* Row 9: Pricing */}
           <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
             <FormField
               control={form.control}
@@ -375,6 +481,13 @@ export function JobForm({
               )}
             />
           </div>
+
+          {/* Hidden field for entered by (will be auto-filled in API) */}
+          {userEmail && (
+            <div className='text-muted-foreground text-sm'>
+              Entered by: {userEmail}
+            </div>
+          )}
 
           <div className='flex justify-end gap-4'>
             <Button

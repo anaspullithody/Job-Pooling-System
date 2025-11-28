@@ -125,6 +125,7 @@
     "@types/sort-by": "^1.2.3",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^6.11.0",
+    "baseline-browser-mapping": "^2.8.32",
     "dotenv": "^17.2.3",
     "husky": "^9.1.7",
     "lint-staged": "^15.2.11",

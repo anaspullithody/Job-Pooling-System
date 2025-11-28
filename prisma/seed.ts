@@ -36,19 +36,31 @@ async function main() {
   });
   console.log('✅ Created ACCOUNTANT:', accountant.email);
 
-  // Create test DRIVER user
+  // Create test DRIVER users
   const driverPin = await bcrypt.hash('1234', 10);
-  const driver = await prisma.user.upsert({
+  const driver1 = await prisma.user.upsert({
     where: { phone: '+971501234567' },
     update: {},
     create: {
       phone: '+971501234567',
-      email: 'driver@example.com',
       role: UserRole.DRIVER,
-      pinHash: driverPin
+      pinHash: driverPin,
+      pinTemp: true // Temporary PIN - driver must change on first login
     }
   });
-  console.log('✅ Created DRIVER:', driver.phone);
+  console.log('✅ Created DRIVER:', driver1.phone);
+
+  const driver2 = await prisma.user.upsert({
+    where: { phone: '+971507654321' },
+    update: {},
+    create: {
+      phone: '+971507654321',
+      role: UserRole.DRIVER,
+      pinHash: await bcrypt.hash('5678', 10),
+      pinTemp: false // Permanent PIN
+    }
+  });
+  console.log('✅ Created DRIVER:', driver2.phone);
 
   // Create sample clients
   const client1 = await prisma.company.create({
@@ -184,16 +196,22 @@ async function main() {
       clientId: client1.id,
       supplierId: supplier1.id,
       guestName: 'John Doe',
+      numberOfAdults: 2,
       guestContact: '+971501111111',
       pickup: 'Dubai Airport Terminal 1',
       drop: 'Burj Al Arab Hotel',
       flight: 'EK 201',
+      pickupTime: '10:30 AM',
       category: 'Sedan',
+      vehicleModel: 'Toyota Camry',
       vehicle: 'DXB-1234',
       status: JobStatus.IN_POOL,
       price: 150.0,
       taxAmount: 7.5,
       totalAmount: 157.5,
+      driverName: 'Premium Transport LLC',
+      remarks: 'VIP guest, please be on time',
+      enteredBy: admin.email,
       jobLogs: {
         create: [
           {
@@ -211,28 +229,69 @@ async function main() {
       clientId: client2.id,
       supplierId: supplier2.id,
       guestName: 'Jane Smith',
+      numberOfAdults: 3,
       guestContact: '+971502222222',
       pickup: 'Dubai Marina',
       drop: 'Dubai Airport Terminal 3',
+      flight: 'EK 305',
+      pickupTime: '2:00 PM',
       category: 'Luxury',
+      vehicleModel: 'Mercedes S-Class',
       vehicle: 'DXB-9999',
       status: JobStatus.ASSIGNED,
       price: 300.0,
       taxAmount: 15.0,
       totalAmount: 315.0,
-      driverName: 'Ahmed Ali',
+      driverName: 'Elite Car Services',
       assignedPlate: 'DXB-9999',
+      remarks: 'Airport pickup, flight arrival time confirmed',
+      enteredBy: admin.email,
       jobLogs: {
         create: [
           {
             actorId: admin.id,
-            action: 'CREATED',
-            notes: 'Job created by admin'
+            action: 'Job created',
+            notes: 'Initial job creation'
           },
           {
             actorId: admin.id,
-            action: 'STATUS_CHANGED',
-            notes: 'Status changed to ASSIGNED'
+            action: 'Status updated',
+            notes: 'Changed status from IN_POOL to ASSIGNED'
+          }
+        ]
+      }
+    }
+  });
+
+  // Create a job for own company
+  const job3 = await prisma.job.create({
+    data: {
+      clientId: client1.id,
+      supplierId: ownFleet.id,
+      guestName: 'Mohammed Ali',
+      numberOfAdults: 4,
+      guestContact: '+971503333333',
+      pickup: 'Terminal 2',
+      drop: 'Jumeirah Beach',
+      flight: 'FZ 50',
+      pickupTime: '11:45 AM',
+      category: 'MINI BUS',
+      vehicleModel: 'MINI BUS',
+      vehicle: 'DXB-5555',
+      status: JobStatus.ASSIGNED,
+      price: 200.0,
+      taxAmount: 10.0,
+      totalAmount: 210.0,
+      driverName: 'Ahmed Hassan (DXB-5555)',
+      assignedPlate: 'DXB-5555',
+      remarks: 'Family with luggage',
+      enteredBy: admin.email,
+      jobLogs: {
+        create: [
+          {
+            actorId: admin.id,
+            action: 'Job created',
+            notes: 'Own company job created'
           }
         ]
       }
