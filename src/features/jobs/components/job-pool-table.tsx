@@ -28,6 +28,9 @@ import { JobStatus } from '@/types/job';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
+import { MessageCircle, Pencil, Eye } from 'lucide-react';
+import { formatWhatsAppMessage, copyToClipboard } from '@/lib/utils/whatsapp';
+import { toast } from 'sonner';
 
 interface Job {
   id: string;
@@ -36,6 +39,10 @@ interface Job {
   pickup: string;
   drop: string;
   flight?: string | null;
+  pickupTime?: string | null;
+  driverName?: string | null;
+  assignedPlate?: string | null;
+  vehicleModel?: string | null;
   status: JobStatus;
   createdAt: string;
   client: {
@@ -168,9 +175,63 @@ export function JobPoolTable({
             'MMM dd, yyyy HH:mm'
           );
         }
+      },
+      {
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => {
+          const job = row.original;
+          const isAssigned = job.status === 'ASSIGNED';
+
+          const handleCopyWhatsApp = async () => {
+            const message = formatWhatsAppMessage({
+              guestName: job.guestName,
+              guestContact: job.guestContact,
+              pickup: job.pickup,
+              pickupTime: job.pickupTime,
+              drop: job.drop,
+              flight: job.flight,
+              driverName: job.driverName,
+              assignedPlate: job.assignedPlate,
+              vehicleModel: job.vehicleModel
+            });
+
+            const success = await copyToClipboard(message);
+            if (success) {
+              toast.success('WhatsApp message copied to clipboard');
+            } else {
+              toast.error('Failed to copy message');
+            }
+          };
+
+          return (
+            <div className='flex gap-2'>
+              {isAssigned && (
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  onClick={handleCopyWhatsApp}
+                  title='Copy WhatsApp message'
+                >
+                  <MessageCircle className='h-4 w-4' />
+                </Button>
+              )}
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={() => router.push(`/dashboard/jobs/${job.id}`)}
+                title='View details'
+              >
+                <Eye className='h-4 w-4' />
+              </Button>
+            </div>
+          );
+        },
+        enableSorting: false,
+        enableHiding: false
       }
     ],
-    []
+    [router]
   );
 
   const table = useReactTable({

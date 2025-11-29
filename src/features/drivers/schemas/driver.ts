@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 export const createDriverSchema = z.object({
   phone: z.string().min(10, 'Phone number must be at least 10 characters'),
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  vehiclePlate: z.string().min(1, 'Vehicle plate is required'),
   pin: z
     .string()
     .length(4, 'PIN must be exactly 4 digits')
@@ -12,7 +14,9 @@ export const updateDriverSchema = z.object({
   phone: z
     .string()
     .min(10, 'Phone number must be at least 10 characters')
-    .optional()
+    .optional(),
+  name: z.string().min(2, 'Name must be at least 2 characters').optional(),
+  vehiclePlate: z.string().min(1, 'Vehicle plate is required').optional()
 });
 
 export const resetPinSchema = z.object({

@@ -40,27 +40,37 @@ async function main() {
   const driverPin = await bcrypt.hash('1234', 10);
   const driver1 = await prisma.user.upsert({
     where: { phone: '+971501234567' },
-    update: {},
+    update: {
+      name: 'Ahmed Hassan',
+      vehiclePlate: 'ABC123'
+    },
     create: {
       phone: '+971501234567',
       role: UserRole.DRIVER,
       pinHash: driverPin,
-      pinTemp: true // Temporary PIN - driver must change on first login
+      pinTemp: true, // Temporary PIN - driver must change on first login
+      name: 'Ahmed Hassan',
+      vehiclePlate: 'ABC123'
     }
   });
-  console.log('✅ Created DRIVER:', driver1.phone);
+  console.log('✅ Created DRIVER:', driver1.phone, `(${driver1.name})`);
 
   const driver2 = await prisma.user.upsert({
     where: { phone: '+971507654321' },
-    update: {},
+    update: {
+      name: 'Mohammed Ali',
+      vehiclePlate: 'XYZ789'
+    },
     create: {
       phone: '+971507654321',
       role: UserRole.DRIVER,
       pinHash: await bcrypt.hash('5678', 10),
-      pinTemp: false // Permanent PIN
+      pinTemp: false, // Permanent PIN
+      name: 'Mohammed Ali',
+      vehiclePlate: 'XYZ789'
     }
   });
-  console.log('✅ Created DRIVER:', driver2.phone);
+  console.log('✅ Created DRIVER:', driver2.phone, `(${driver2.name})`);
 
   // Create sample clients
   const client1 = await prisma.company.create({

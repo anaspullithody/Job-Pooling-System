@@ -219,7 +219,7 @@ export function JobDetailView({ job, canEdit }: JobDetailViewProps) {
                 />
                 <Button
                   size='sm'
-                  onClick={() => handleStatusChange('FAILED')}
+                  onClick={() => handleStatusChange(JobStatus.FAILED)}
                   className='mt-2'
                   disabled={!failureReason || loading}
                 >

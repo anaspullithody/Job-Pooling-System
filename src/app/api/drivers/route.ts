@@ -17,6 +17,8 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         phone: true,
+        name: true,
+        vehiclePlate: true,
         pinTemp: true,
         createdAt: true,
         updatedAt: true
@@ -66,6 +68,8 @@ export async function POST(req: NextRequest) {
     const driver = await prisma.user.create({
       data: {
         phone: validatedData.phone,
+        name: validatedData.name,
+        vehiclePlate: validatedData.vehiclePlate,
         pinHash,
         pinTemp: true, // Mark as temporary PIN
         role: 'DRIVER'
@@ -73,6 +77,8 @@ export async function POST(req: NextRequest) {
       select: {
         id: true,
         phone: true,
+        name: true,
+        vehiclePlate: true,
         pinTemp: true,
         createdAt: true
       }

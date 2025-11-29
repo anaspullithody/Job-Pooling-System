@@ -17,6 +17,8 @@ import { toast } from 'sonner';
 interface Driver {
   id: string;
   phone: string;
+  name?: string | null;
+  vehiclePlate?: string | null;
   pinTemp: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -67,7 +69,9 @@ export function DriverList({
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Name</TableHead>
             <TableHead>Phone</TableHead>
+            <TableHead>Vehicle Plate</TableHead>
             <TableHead>PIN Status</TableHead>
             <TableHead>Created</TableHead>
             <TableHead className='text-right'>Actions</TableHead>
@@ -77,7 +81,7 @@ export function DriverList({
           {drivers.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={4}
+                colSpan={6}
                 className='text-muted-foreground text-center'
               >
                 No drivers found
@@ -86,7 +90,13 @@ export function DriverList({
           ) : (
             drivers.map((driver) => (
               <TableRow key={driver.id}>
-                <TableCell className='font-medium'>{driver.phone}</TableCell>
+                <TableCell className='font-medium'>
+                  {driver.name || 'N/A'}
+                </TableCell>
+                <TableCell>{driver.phone}</TableCell>
+                <TableCell className='font-mono'>
+                  {driver.vehiclePlate || 'N/A'}
+                </TableCell>
                 <TableCell>
                   <span
                     className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${

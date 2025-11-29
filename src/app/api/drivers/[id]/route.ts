@@ -21,6 +21,8 @@ export async function GET(
       select: {
         id: true,
         phone: true,
+        name: true,
+        vehiclePlate: true,
         pinTemp: true,
         createdAt: true,
         updatedAt: true
@@ -79,6 +81,8 @@ export async function PATCH(
       select: {
         id: true,
         phone: true,
+        name: true,
+        vehiclePlate: true,
         pinTemp: true,
         updatedAt: true
       }

@@ -76,87 +76,89 @@ export default function DriverResetPinPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
-              <FormField
-                control={form.control}
-                name='currentPin'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Current PIN *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type='password'
-                        placeholder='Enter current PIN'
-                        maxLength={4}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <Form
+            form={form}
+            onSubmit={form.handleSubmit(onSubmit)}
+            className='space-y-4'
+          >
+            <FormField
+              control={form.control}
+              name='currentPin'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Current PIN *</FormLabel>
+                  <FormControl>
+                    <Input
+                      type='password'
+                      placeholder='Enter current PIN'
+                      maxLength={4}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name='newPin'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>New PIN *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type='password'
-                        placeholder='Enter new 4-digit PIN'
-                        maxLength={4}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name='newPin'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>New PIN *</FormLabel>
+                  <FormControl>
+                    <Input
+                      type='password'
+                      placeholder='Enter new 4-digit PIN'
+                      maxLength={4}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name='confirmPin'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm New PIN *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type='password'
-                        placeholder='Re-enter new PIN'
-                        maxLength={4}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name='confirmPin'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm New PIN *</FormLabel>
+                  <FormControl>
+                    <Input
+                      type='password'
+                      placeholder='Re-enter new PIN'
+                      maxLength={4}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <div className='flex gap-2'>
-                <Button
-                  type='button'
-                  variant='outline'
-                  onClick={() => router.back()}
-                  disabled={loading}
-                  className='flex-1'
-                >
-                  Cancel
-                </Button>
-                <Button type='submit' disabled={loading} className='flex-1'>
-                  {loading ? (
-                    <>
-                      <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                      Changing...
-                    </>
-                  ) : (
-                    'Change PIN'
-                  )}
-                </Button>
-              </div>
-            </form>
+            <div className='flex gap-2'>
+              <Button
+                type='button'
+                variant='outline'
+                onClick={() => router.back()}
+                disabled={loading}
+                className='flex-1'
+              >
+                Cancel
+              </Button>
+              <Button type='submit' disabled={loading} className='flex-1'>
+                {loading ? (
+                  <>
+                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                    Changing...
+                  </>
+                ) : (
+                  'Change PIN'
+                )}
+              </Button>
+            </div>
           </Form>
         </CardContent>
       </Card>

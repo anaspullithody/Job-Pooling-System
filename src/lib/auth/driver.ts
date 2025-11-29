@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { prisma } from '../db/prisma';
 import bcrypt from 'bcryptjs';
-import type { UserRole } from '@prisma/client';
+import { UserRole } from '@/types/user';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'change-me-in-production';
 

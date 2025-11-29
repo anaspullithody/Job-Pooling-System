@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle
@@ -21,77 +21,80 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import {
-  createDriverSchema,
-  updateDriverSchema,
-  type CreateDriverInput,
-  type UpdateDriverInput
-} from '@/features/drivers/schemas/driver';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
-interface DriverFormDialogProps {
+const vehicleSchema = z.object({
+  category: z.string().min(1, 'Category is required'),
+  regNumber: z.string().min(1, 'Registration number is required'),
+  model: z.string().optional()
+});
+
+type VehicleFormData = z.infer<typeof vehicleSchema>;
+
+interface VehicleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
-  driver?: {
+  supplierId: string;
+  vehicle?: {
     id: string;
-    phone: string;
-    name?: string | null;
-    vehiclePlate?: string | null;
+    category: string;
+    regNumber: string;
+    model?: string | null;
   } | null;
 }
 
-export function DriverFormDialog({
+export function VehicleDialog({
   open,
   onOpenChange,
   onSuccess,
-  driver
-}: DriverFormDialogProps) {
+  supplierId,
+  vehicle
+}: VehicleDialogProps) {
   const [loading, setLoading] = useState(false);
-  const isEditing = !!driver;
+  const isEditing = !!vehicle;
 
-  const form = useForm<CreateDriverInput | UpdateDriverInput>({
-    resolver: zodResolver(
-      isEditing ? updateDriverSchema : createDriverSchema
-    ) as any,
+  const form = useForm<VehicleFormData>({
+    resolver: zodResolver(vehicleSchema),
     defaultValues: {
-      phone: driver?.phone || '',
-      name: driver?.name || '',
-      vehiclePlate: driver?.vehiclePlate || '',
-      pin: ''
+      category: vehicle?.category || '',
+      regNumber: vehicle?.regNumber || '',
+      model: vehicle?.model || ''
     }
   });
 
-  const onSubmit = async (values: CreateDriverInput | UpdateDriverInput) => {
+  const onSubmit = async (data: VehicleFormData) => {
     setLoading(true);
     try {
-      const url = isEditing ? `/api/drivers/${driver.id}` : '/api/drivers';
+      const url = isEditing
+        ? `/api/suppliers/${supplierId}/vehicles/${vehicle.id}`
+        : `/api/suppliers/${supplierId}/vehicles`;
       const method = isEditing ? 'PATCH' : 'POST';
 
-      const res = await fetch(url, {
+      const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(values)
+        body: JSON.stringify(data)
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Failed to save driver');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save vehicle');
       }
 
       toast.success(
         isEditing
-          ? 'Driver updated successfully'
-          : 'Driver created successfully'
+          ? 'Vehicle updated successfully'
+          : 'Vehicle created successfully'
       );
       onOpenChange(false);
       form.reset();
       onSuccess();
     } catch (error: any) {
-      toast.error(error.message || 'An unexpected error occurred');
+      toast.error(error.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -102,13 +105,8 @@ export function DriverFormDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? 'Edit Driver' : 'Create New Driver'}
+            {isEditing ? 'Edit Vehicle' : 'Add New Vehicle'}
           </DialogTitle>
-          <DialogDescription>
-            {isEditing
-              ? 'Update driver information.'
-              : 'Create a new driver with a temporary 4-digit PIN.'}
-          </DialogDescription>
         </DialogHeader>
 
         <Form
@@ -118,38 +116,10 @@ export function DriverFormDialog({
         >
           <FormField
             control={form.control}
-            name='phone'
+            name='regNumber'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone Number *</FormLabel>
-                <FormControl>
-                  <Input placeholder='+971501234567' {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name='name'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Driver Name *</FormLabel>
-                <FormControl>
-                  <Input placeholder='Ahmed Hassan' {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name='vehiclePlate'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Vehicle Plate *</FormLabel>
+                <FormLabel>Registration Number *</FormLabel>
                 <FormControl>
                   <Input placeholder='ABC123' {...field} />
                 </FormControl>
@@ -158,29 +128,33 @@ export function DriverFormDialog({
             )}
           />
 
-          {!isEditing && (
-            <FormField
-              control={form.control}
-              name='pin'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Temporary PIN *</FormLabel>
-                  <FormControl>
-                    <Input
-                      type='text'
-                      placeholder='1234'
-                      maxLength={4}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                  <p className='text-muted-foreground text-xs'>
-                    Driver will be required to change this PIN on first login
-                  </p>
-                </FormItem>
-              )}
-            />
-          )}
+          <FormField
+            control={form.control}
+            name='category'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category *</FormLabel>
+                <FormControl>
+                  <Input placeholder='e.g., Sedan, SUV' {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name='model'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Model</FormLabel>
+                <FormControl>
+                  <Input placeholder='e.g., Toyota Camry' {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <DialogFooter>
             <Button
@@ -197,10 +171,8 @@ export function DriverFormDialog({
                   <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                   Saving...
                 </>
-              ) : isEditing ? (
-                'Update Driver'
               ) : (
-                'Create Driver'
+                'Save Vehicle'
               )}
             </Button>
           </DialogFooter>

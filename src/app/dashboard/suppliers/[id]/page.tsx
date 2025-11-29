@@ -15,6 +15,9 @@ import {
 } from '@/components/ui/table';
 import { ArrowLeft, Plus, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ContactDialog } from '@/features/suppliers/components/contact-dialog';
+import { CategoryDialog } from '@/features/suppliers/components/category-dialog';
+import { VehicleDialog } from '@/features/suppliers/components/vehicle-dialog';
 
 export default function SupplierDetailPage() {
   const params = useParams();
@@ -27,42 +30,119 @@ export default function SupplierDetailPage() {
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [supplierRes, contactsRes, categoriesRes, vehiclesRes] =
-          await Promise.all([
-            fetch(`/api/suppliers/${supplierId}`),
-            fetch(`/api/suppliers/${supplierId}/contacts`),
-            fetch(`/api/suppliers/${supplierId}/categories`),
-            fetch(`/api/suppliers/${supplierId}/vehicles`)
-          ]);
+  // Dialog states
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [vehicleDialogOpen, setVehicleDialogOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
 
-        if (supplierRes.ok) {
-          const data = await supplierRes.json();
-          setSupplier(data.supplier);
-        }
-        if (contactsRes.ok) {
-          const data = await contactsRes.json();
-          setContacts(data.contacts);
-        }
-        if (categoriesRes.ok) {
-          const data = await categoriesRes.json();
-          setCategories(data.categories);
-        }
-        if (vehiclesRes.ok) {
-          const data = await vehiclesRes.json();
-          setVehicles(data.vehicles);
-        }
-      } catch (error) {
-        toast.error('Failed to load supplier details');
-      } finally {
-        setLoading(false);
+  const fetchData = async () => {
+    try {
+      const [supplierRes, contactsRes, categoriesRes, vehiclesRes] =
+        await Promise.all([
+          fetch(`/api/suppliers/${supplierId}`),
+          fetch(`/api/suppliers/${supplierId}/contacts`),
+          fetch(`/api/suppliers/${supplierId}/categories`),
+          fetch(`/api/suppliers/${supplierId}/vehicles`)
+        ]);
+
+      if (supplierRes.ok) {
+        const data = await supplierRes.json();
+        setSupplier(data.supplier);
       }
-    };
+      if (contactsRes.ok) {
+        const data = await contactsRes.json();
+        setContacts(data.contacts);
+      }
+      if (categoriesRes.ok) {
+        const data = await categoriesRes.json();
+        setCategories(data.categories);
+      }
+      if (vehiclesRes.ok) {
+        const data = await vehiclesRes.json();
+        setVehicles(data.vehicles);
+      }
+    } catch (error) {
+      toast.error('Failed to load supplier details');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchData();
   }, [supplierId]);
+
+  // Delete handlers
+  const handleDeleteContact = async (contactId: string) => {
+    if (!confirm('Are you sure you want to delete this contact?')) return;
+
+    try {
+      const res = await fetch(
+        `/api/suppliers/${supplierId}/contacts/${contactId}`,
+        {
+          method: 'DELETE'
+        }
+      );
+      if (res.ok) {
+        toast.success('Contact deleted successfully');
+        fetchData();
+      } else {
+        throw new Error('Failed to delete contact');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete contact');
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    if (
+      !confirm(
+        'Are you sure you want to delete this category? All vehicles in this category will also be deleted.'
+      )
+    )
+      return;
+
+    try {
+      const res = await fetch(
+        `/api/suppliers/${supplierId}/categories/${categoryId}`,
+        {
+          method: 'DELETE'
+        }
+      );
+      if (res.ok) {
+        toast.success('Category deleted successfully');
+        fetchData();
+      } else {
+        throw new Error('Failed to delete category');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete category');
+    }
+  };
+
+  const handleDeleteVehicle = async (vehicleId: string) => {
+    if (!confirm('Are you sure you want to delete this vehicle?')) return;
+
+    try {
+      const res = await fetch(
+        `/api/suppliers/${supplierId}/vehicles/${vehicleId}`,
+        {
+          method: 'DELETE'
+        }
+      );
+      if (res.ok) {
+        toast.success('Vehicle deleted successfully');
+        fetchData();
+      } else {
+        throw new Error('Failed to delete vehicle');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete vehicle');
+    }
+  };
 
   if (loading) {
     return <div className='flex-1 p-8'>Loading...</div>;
@@ -120,7 +200,13 @@ export default function SupplierDetailPage() {
           <Card>
             <CardHeader className='flex flex-row items-center justify-between'>
               <CardTitle>Contacts</CardTitle>
-              <Button size='sm'>
+              <Button
+                size='sm'
+                onClick={() => {
+                  setSelectedContact(null);
+                  setContactDialogOpen(true);
+                }}
+              >
                 <Plus className='mr-2 h-4 w-4' />
                 Add Contact
               </Button>
@@ -151,10 +237,21 @@ export default function SupplierDetailPage() {
                         <TableCell>{contact.email || 'N/A'}</TableCell>
                         <TableCell className='text-right'>
                           <div className='flex justify-end gap-2'>
-                            <Button variant='ghost' size='sm'>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => {
+                                setSelectedContact(contact);
+                                setContactDialogOpen(true);
+                              }}
+                            >
                               <Pencil className='h-4 w-4' />
                             </Button>
-                            <Button variant='ghost' size='sm'>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => handleDeleteContact(contact.id)}
+                            >
                               <Trash2 className='h-4 w-4' />
                             </Button>
                           </div>
@@ -172,7 +269,13 @@ export default function SupplierDetailPage() {
           <Card>
             <CardHeader className='flex flex-row items-center justify-between'>
               <CardTitle>Categories</CardTitle>
-              <Button size='sm'>
+              <Button
+                size='sm'
+                onClick={() => {
+                  setSelectedCategory(null);
+                  setCategoryDialogOpen(true);
+                }}
+              >
                 <Plus className='mr-2 h-4 w-4' />
                 Add Category
               </Button>
@@ -200,13 +303,24 @@ export default function SupplierDetailPage() {
                     categories.map((category) => (
                       <TableRow key={category.id}>
                         <TableCell>{category.category}</TableCell>
-                        <TableCell>{category._count?.vehicles || 0}</TableCell>
+                        <TableCell>{category.vehicleCount || 0}</TableCell>
                         <TableCell className='text-right'>
                           <div className='flex justify-end gap-2'>
-                            <Button variant='ghost' size='sm'>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => {
+                                setSelectedCategory(category);
+                                setCategoryDialogOpen(true);
+                              }}
+                            >
                               <Pencil className='h-4 w-4' />
                             </Button>
-                            <Button variant='ghost' size='sm'>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => handleDeleteCategory(category.id)}
+                            >
                               <Trash2 className='h-4 w-4' />
                             </Button>
                           </div>
@@ -224,7 +338,13 @@ export default function SupplierDetailPage() {
           <Card>
             <CardHeader className='flex flex-row items-center justify-between'>
               <CardTitle>Vehicles</CardTitle>
-              <Button size='sm'>
+              <Button
+                size='sm'
+                onClick={() => {
+                  setSelectedVehicle(null);
+                  setVehicleDialogOpen(true);
+                }}
+              >
                 <Plus className='mr-2 h-4 w-4' />
                 Add Vehicle
               </Button>
@@ -254,15 +374,24 @@ export default function SupplierDetailPage() {
                       <TableRow key={vehicle.id}>
                         <TableCell>{vehicle.regNumber}</TableCell>
                         <TableCell>{vehicle.model || 'N/A'}</TableCell>
-                        <TableCell>
-                          {vehicle.category?.category || 'N/A'}
-                        </TableCell>
+                        <TableCell>{vehicle.category}</TableCell>
                         <TableCell className='text-right'>
                           <div className='flex justify-end gap-2'>
-                            <Button variant='ghost' size='sm'>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => {
+                                setSelectedVehicle(vehicle);
+                                setVehicleDialogOpen(true);
+                              }}
+                            >
                               <Pencil className='h-4 w-4' />
                             </Button>
-                            <Button variant='ghost' size='sm'>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => handleDeleteVehicle(vehicle.id)}
+                            >
                               <Trash2 className='h-4 w-4' />
                             </Button>
                           </div>
@@ -276,6 +405,31 @@ export default function SupplierDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Dialogs */}
+      <ContactDialog
+        open={contactDialogOpen}
+        onOpenChange={setContactDialogOpen}
+        onSuccess={fetchData}
+        supplierId={supplierId}
+        contact={selectedContact}
+      />
+
+      <CategoryDialog
+        open={categoryDialogOpen}
+        onOpenChange={setCategoryDialogOpen}
+        onSuccess={fetchData}
+        supplierId={supplierId}
+        category={selectedCategory}
+      />
+
+      <VehicleDialog
+        open={vehicleDialogOpen}
+        onOpenChange={setVehicleDialogOpen}
+        onSuccess={fetchData}
+        supplierId={supplierId}
+        vehicle={selectedVehicle}
+      />
     </div>
   );
 }

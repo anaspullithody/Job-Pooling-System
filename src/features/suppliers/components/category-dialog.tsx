@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle
@@ -21,64 +21,77 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import {
-  resetPinSchema,
-  type ResetPinInput
-} from '@/features/drivers/schemas/driver';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
-interface ResetPinDialogProps {
+const categorySchema = z.object({
+  category: z.string().min(1, 'Category name is required'),
+  vehicleCount: z.number().int().min(0).optional()
+});
+
+type CategoryFormData = z.infer<typeof categorySchema>;
+
+interface CategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
-  driver: {
+  supplierId: string;
+  category?: {
     id: string;
-    phone: string;
+    category: string;
+    vehicleCount?: number;
   } | null;
 }
 
-export function ResetPinDialog({
+export function CategoryDialog({
   open,
   onOpenChange,
   onSuccess,
-  driver
-}: ResetPinDialogProps) {
+  supplierId,
+  category
+}: CategoryDialogProps) {
   const [loading, setLoading] = useState(false);
+  const isEditing = !!category;
 
-  const form = useForm<ResetPinInput>({
-    resolver: zodResolver(resetPinSchema),
+  const form = useForm<CategoryFormData>({
+    resolver: zodResolver(categorySchema),
     defaultValues: {
-      pin: ''
+      category: category?.category || '',
+      vehicleCount: category?.vehicleCount || 0
     }
   });
 
-  const onSubmit = async (values: ResetPinInput) => {
-    if (!driver) return;
-
+  const onSubmit = async (data: CategoryFormData) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/drivers/${driver.id}/reset-pin`, {
-        method: 'POST',
+      const url = isEditing
+        ? `/api/suppliers/${supplierId}/categories/${category.id}`
+        : `/api/suppliers/${supplierId}/categories`;
+      const method = isEditing ? 'PATCH' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(values)
+        body: JSON.stringify(data)
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Failed to reset PIN');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save category');
       }
 
       toast.success(
-        'PIN reset successfully. Driver must change it on next login.'
+        isEditing
+          ? 'Category updated successfully'
+          : 'Category created successfully'
       );
       onOpenChange(false);
       form.reset();
       onSuccess();
     } catch (error: any) {
-      toast.error(error.message || 'An unexpected error occurred');
+      toast.error(error.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -88,12 +101,9 @@ export function ResetPinDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Reset Driver PIN</DialogTitle>
-          <DialogDescription>
-            Reset PIN for driver: <strong>{driver?.phone}</strong>
-            <br />
-            The driver will be required to change this PIN on next login.
-          </DialogDescription>
+          <DialogTitle>
+            {isEditing ? 'Edit Category' : 'Add New Category'}
+          </DialogTitle>
         </DialogHeader>
 
         <Form
@@ -103,22 +113,35 @@ export function ResetPinDialog({
         >
           <FormField
             control={form.control}
-            name='pin'
+            name='category'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>New Temporary PIN *</FormLabel>
+                <FormLabel>Category Name *</FormLabel>
+                <FormControl>
+                  <Input placeholder='e.g., Sedan, SUV' {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name='vehicleCount'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Vehicle Count</FormLabel>
                 <FormControl>
                   <Input
-                    type='text'
-                    placeholder='1234'
-                    maxLength={4}
+                    type='number'
+                    placeholder='0'
                     {...field}
+                    onChange={(e) =>
+                      field.onChange(parseInt(e.target.value) || 0)
+                    }
                   />
                 </FormControl>
                 <FormMessage />
-                <p className='text-muted-foreground text-xs'>
-                  Enter a 4-digit temporary PIN
-                </p>
               </FormItem>
             )}
           />
@@ -136,10 +159,10 @@ export function ResetPinDialog({
               {loading ? (
                 <>
                   <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                  Resetting...
+                  Saving...
                 </>
               ) : (
-                'Reset PIN'
+                'Save Category'
               )}
             </Button>
           </DialogFooter>

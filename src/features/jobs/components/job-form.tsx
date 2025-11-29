@@ -38,6 +38,13 @@ interface JobFormProps {
   userEmail?: string;
 }
 
+interface Driver {
+  id: string;
+  name: string;
+  plate: string;
+  label: string;
+}
+
 export function JobForm({
   clients,
   suppliers,
@@ -48,6 +55,7 @@ export function JobForm({
 }: JobFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(
     initialData?.supplierId || null
   );
@@ -78,6 +86,22 @@ export function JobForm({
 
   const selectedSupplier = suppliers.find((s) => s.id === selectedSupplierId);
   const isOwnFleet = selectedSupplierId === ownFleet?.id;
+
+  // Fetch drivers for dropdown
+  useEffect(() => {
+    const fetchDrivers = async () => {
+      try {
+        const res = await fetch('/api/drivers/list-for-jobs');
+        if (res.ok) {
+          const data = await res.json();
+          setDrivers(data.drivers);
+        }
+      } catch (error) {
+        console.error('Failed to fetch drivers:', error);
+      }
+    };
+    fetchDrivers();
+  }, []);
 
   const onSubmit = async (data: CreateJobInput) => {
     setLoading(true);
@@ -334,39 +358,45 @@ export function JobForm({
 
           {/* Row 7: Driver Details (conditional) */}
           {isOwnFleet && (
-            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-              <FormField
-                control={form.control}
-                name='driverName'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Driver Name *</FormLabel>
+            <FormField
+              control={form.control}
+              name='driverName'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Select Driver *</FormLabel>
+                  <Select
+                    onValueChange={(driverId) => {
+                      const driver = drivers.find((d) => d.id === driverId);
+                      if (driver) {
+                        form.setValue('driverName', driver.name);
+                        form.setValue('assignedPlate', driver.plate);
+                        field.onChange(driver.name);
+                      }
+                    }}
+                    value={
+                      drivers.find((d) => d.name === field.value)?.id || ''
+                    }
+                  >
                     <FormControl>
-                      <Input {...field} placeholder='Enter driver name' />
+                      <SelectTrigger>
+                        <SelectValue placeholder='Select driver' />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormDescription>For own company jobs</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name='assignedPlate'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Vehicle Plate *</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder='Enter plate number' />
-                    </FormControl>
-                    <FormDescription>
-                      Will be displayed as: Driver Name (Plate)
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                    <SelectContent>
+                      {drivers.map((driver) => (
+                        <SelectItem key={driver.id} value={driver.id}>
+                          {driver.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Driver and vehicle will be assigned to this job
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           )}
 
           {selectedSupplierId && !isOwnFleet && (

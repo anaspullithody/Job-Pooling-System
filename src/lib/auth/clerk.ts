@@ -15,7 +15,7 @@ export async function getClerkUserRole(): Promise<UserRole | null> {
     select: { role: true }
   });
 
-  return user?.role || null;
+  return (user?.role as UserRole) || null;
 }
 
 export async function requireRole(allowedRoles: UserRole[]) {

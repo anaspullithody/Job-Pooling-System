@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle
@@ -21,64 +21,82 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import {
-  resetPinSchema,
-  type ResetPinInput
-} from '@/features/drivers/schemas/driver';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
-interface ResetPinDialogProps {
+const contactSchema = z
+  .object({
+    phone: z.string().optional(),
+    email: z.string().email('Invalid email').optional().or(z.literal(''))
+  })
+  .refine((data) => data.phone || data.email, {
+    message: 'At least one contact method is required',
+    path: ['phone']
+  });
+
+type ContactFormData = z.infer<typeof contactSchema>;
+
+interface ContactDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
-  driver: {
+  supplierId: string;
+  contact?: {
     id: string;
-    phone: string;
+    phone?: string | null;
+    email?: string | null;
   } | null;
 }
 
-export function ResetPinDialog({
+export function ContactDialog({
   open,
   onOpenChange,
   onSuccess,
-  driver
-}: ResetPinDialogProps) {
+  supplierId,
+  contact
+}: ContactDialogProps) {
   const [loading, setLoading] = useState(false);
+  const isEditing = !!contact;
 
-  const form = useForm<ResetPinInput>({
-    resolver: zodResolver(resetPinSchema),
+  const form = useForm<ContactFormData>({
+    resolver: zodResolver(contactSchema),
     defaultValues: {
-      pin: ''
+      phone: contact?.phone || '',
+      email: contact?.email || ''
     }
   });
 
-  const onSubmit = async (values: ResetPinInput) => {
-    if (!driver) return;
-
+  const onSubmit = async (data: ContactFormData) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/drivers/${driver.id}/reset-pin`, {
-        method: 'POST',
+      const url = isEditing
+        ? `/api/suppliers/${supplierId}/contacts/${contact.id}`
+        : `/api/suppliers/${supplierId}/contacts`;
+      const method = isEditing ? 'PATCH' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(values)
+        body: JSON.stringify(data)
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Failed to reset PIN');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save contact');
       }
 
       toast.success(
-        'PIN reset successfully. Driver must change it on next login.'
+        isEditing
+          ? 'Contact updated successfully'
+          : 'Contact created successfully'
       );
       onOpenChange(false);
       form.reset();
       onSuccess();
     } catch (error: any) {
-      toast.error(error.message || 'An unexpected error occurred');
+      toast.error(error.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -88,12 +106,9 @@ export function ResetPinDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Reset Driver PIN</DialogTitle>
-          <DialogDescription>
-            Reset PIN for driver: <strong>{driver?.phone}</strong>
-            <br />
-            The driver will be required to change this PIN on next login.
-          </DialogDescription>
+          <DialogTitle>
+            {isEditing ? 'Edit Contact' : 'Add New Contact'}
+          </DialogTitle>
         </DialogHeader>
 
         <Form
@@ -103,22 +118,28 @@ export function ResetPinDialog({
         >
           <FormField
             control={form.control}
-            name='pin'
+            name='phone'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>New Temporary PIN *</FormLabel>
+                <FormLabel>Phone Number</FormLabel>
                 <FormControl>
-                  <Input
-                    type='text'
-                    placeholder='1234'
-                    maxLength={4}
-                    {...field}
-                  />
+                  <Input placeholder='+971412345678' {...field} />
                 </FormControl>
                 <FormMessage />
-                <p className='text-muted-foreground text-xs'>
-                  Enter a 4-digit temporary PIN
-                </p>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name='email'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input placeholder='contact@company.com' {...field} />
+                </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -136,10 +157,10 @@ export function ResetPinDialog({
               {loading ? (
                 <>
                   <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                  Resetting...
+                  Saving...
                 </>
               ) : (
-                'Reset PIN'
+                'Save Contact'
               )}
             </Button>
           </DialogFooter>

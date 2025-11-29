@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 interface Driver {
   id: string;
   phone: string;
+  name?: string | null;
+  vehiclePlate?: string | null;
   pinTemp: boolean;
   createdAt: Date;
   updatedAt: Date;

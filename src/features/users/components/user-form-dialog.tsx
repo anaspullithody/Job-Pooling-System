@@ -32,7 +32,8 @@ import { toast } from 'sonner';
 import {
   createUserSchema,
   updateUserSchema,
-  type CreateUserInput
+  type CreateUserInput,
+  type UpdateUserInput
 } from '@/features/users/schemas/user';
 import { Loader2 } from 'lucide-react';
 import { UserRole } from '@/types/user';
@@ -57,16 +58,20 @@ export function UserFormDialog({
   const [loading, setLoading] = useState(false);
   const isEditing = !!user;
 
-  const form = useForm<CreateUserInput>({
-    resolver: zodResolver(isEditing ? updateUserSchema : createUserSchema),
+  const form = useForm<CreateUserInput | UpdateUserInput>({
+    resolver: zodResolver(
+      isEditing ? updateUserSchema : createUserSchema
+    ) as any,
     defaultValues: {
       email: user?.email || '',
       password: '',
-      role: user?.role || 'ACCOUNTANT'
+      role: (user?.role === 'SUPER_ADMIN' || user?.role === 'ACCOUNTANT'
+        ? user.role
+        : 'ACCOUNTANT') as 'SUPER_ADMIN' | 'ACCOUNTANT'
     }
   });
 
-  const onSubmit = async (values: CreateUserInput) => {
+  const onSubmit = async (values: CreateUserInput | UpdateUserInput) => {
     setLoading(true);
     try {
       const url = isEditing ? `/api/users/${user.id}` : '/api/users';
@@ -118,94 +123,94 @@ export function UserFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
-            <FormField
-              control={form.control}
-              name='email'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email *</FormLabel>
+        <Form
+          form={form}
+          onSubmit={form.handleSubmit(onSubmit)}
+          className='space-y-4'
+        >
+          <FormField
+            control={form.control}
+            name='email'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email *</FormLabel>
+                <FormControl>
+                  <Input placeholder='user@example.com' {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name='password'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password {isEditing ? '(optional)' : '*'}</FormLabel>
+                <FormControl>
+                  <Input
+                    type='password'
+                    placeholder={
+                      isEditing
+                        ? 'Leave blank to keep current'
+                        : 'Enter password'
+                    }
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name='role'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Role *</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
-                    <Input placeholder='user@example.com' {...field} />
+                    <SelectTrigger>
+                      <SelectValue placeholder='Select role' />
+                    </SelectTrigger>
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                  <SelectContent>
+                    <SelectItem value='ACCOUNTANT'>Accountant</SelectItem>
+                    <SelectItem value='SUPER_ADMIN'>Super Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <FormField
-              control={form.control}
-              name='password'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Password {isEditing ? '(optional)' : '*'}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type='password'
-                      placeholder={
-                        isEditing
-                          ? 'Leave blank to keep current'
-                          : 'Enter password'
-                      }
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+          <DialogFooter>
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() => onOpenChange(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button type='submit' disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  Saving...
+                </>
+              ) : isEditing ? (
+                'Update User'
+              ) : (
+                'Create User'
               )}
-            />
-
-            <FormField
-              control={form.control}
-              name='role'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Role *</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder='Select role' />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value='ACCOUNTANT'>Accountant</SelectItem>
-                      <SelectItem value='SUPER_ADMIN'>Super Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <DialogFooter>
-              <Button
-                type='button'
-                variant='outline'
-                onClick={() => onOpenChange(false)}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-              <Button type='submit' disabled={loading}>
-                {loading ? (
-                  <>
-                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                    Saving...
-                  </>
-                ) : isEditing ? (
-                  'Update User'
-                ) : (
-                  'Create User'
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
+            </Button>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>

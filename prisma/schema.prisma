@@ -33,15 +33,17 @@ enum JobStatus {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  role      UserRole
-  email     String?  @unique
-  phone     String?  @unique
-  password  String?  // For admin users (hashed)
-  pinHash   String?  // For driver users (hashed PIN)
-  pinTemp   Boolean  @default(false) // True if PIN needs to be changed after reset
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  role         UserRole
+  email        String?  @unique
+  phone        String?  @unique
+  password     String?  // For admin users (hashed)
+  pinHash      String?  // For driver users (hashed PIN)
+  pinTemp      Boolean  @default(false) // True if PIN needs to be changed after reset
+  name         String?  // Driver's full name
+  vehiclePlate String?  // Assigned vehicle plate number for driver
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relations
   jobLogs JobLog[]
