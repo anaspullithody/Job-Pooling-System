@@ -28,6 +28,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { Company } from '@prisma/client';
 import { format } from 'date-fns';
+import { Combobox } from '@/components/ui/combobox';
 
 interface JobFormProps {
   clients: Company[];
@@ -151,23 +152,19 @@ export function JobForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Client *</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder='Select client' />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <Combobox
+                      items={clients.map((client) => ({
+                        value: client.id,
+                        label: client.name
+                      }))}
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder='Select client...'
+                      searchPlaceholder='Search clients...'
+                      emptyMessage='No clients found.'
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -326,31 +323,29 @@ export function JobForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Supplier / Own Company</FormLabel>
-                <Select
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    setSelectedSupplierId(value);
-                    form.setValue('driverName', '');
-                    form.setValue('assignedPlate', '');
-                  }}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder='Select supplier or own company' />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {ownFleet && (
-                      <SelectItem value={ownFleet.id}>Own Company</SelectItem>
-                    )}
-                    {suppliers.map((supplier) => (
-                      <SelectItem key={supplier.id} value={supplier.id}>
-                        {supplier.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <Combobox
+                    items={[
+                      ...(ownFleet
+                        ? [{ value: ownFleet.id, label: 'Own Company' }]
+                        : []),
+                      ...suppliers.map((supplier) => ({
+                        value: supplier.id,
+                        label: supplier.name
+                      }))
+                    ]}
+                    value={field.value}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      setSelectedSupplierId(value);
+                      form.setValue('driverName', '');
+                      form.setValue('assignedPlate', '');
+                    }}
+                    placeholder='Select supplier or own company...'
+                    searchPlaceholder='Search suppliers...'
+                    emptyMessage='No suppliers found.'
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -364,32 +359,28 @@ export function JobForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Select Driver *</FormLabel>
-                  <Select
-                    onValueChange={(driverId) => {
-                      const driver = drivers.find((d) => d.id === driverId);
-                      if (driver) {
-                        form.setValue('driverName', driver.name);
-                        form.setValue('assignedPlate', driver.plate);
-                        field.onChange(driver.name);
+                  <FormControl>
+                    <Combobox
+                      items={drivers.map((driver) => ({
+                        value: driver.id,
+                        label: driver.label
+                      }))}
+                      value={
+                        drivers.find((d) => d.name === field.value)?.id || ''
                       }
-                    }}
-                    value={
-                      drivers.find((d) => d.name === field.value)?.id || ''
-                    }
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder='Select driver' />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {drivers.map((driver) => (
-                        <SelectItem key={driver.id} value={driver.id}>
-                          {driver.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                      onValueChange={(driverId) => {
+                        const driver = drivers.find((d) => d.id === driverId);
+                        if (driver) {
+                          form.setValue('driverName', driver.name);
+                          form.setValue('assignedPlate', driver.plate);
+                          field.onChange(driver.name);
+                        }
+                      }}
+                      placeholder='Select driver...'
+                      searchPlaceholder='Search drivers...'
+                      emptyMessage='No drivers found.'
+                    />
+                  </FormControl>
                   <FormDescription>
                     Driver and vehicle will be assigned to this job
                   </FormDescription>

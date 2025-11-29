@@ -36,7 +36,12 @@ interface Supplier {
   }>;
 }
 
-export function SupplierList({ suppliers }: { suppliers: Supplier[] }) {
+interface SupplierListProps {
+  suppliers: Supplier[];
+  canEdit?: boolean;
+}
+
+export function SupplierList({ suppliers, canEdit = true }: SupplierListProps) {
   const router = useRouter();
   const [searchValue, setSearchValue] = useState('');
 
@@ -96,13 +101,16 @@ export function SupplierList({ suppliers }: { suppliers: Supplier[] }) {
               <TableHead>Contacts</TableHead>
               <TableHead>Categories</TableHead>
               <TableHead>Vehicles</TableHead>
-              <TableHead className='text-right'>Actions</TableHead>
+              {canEdit && <TableHead className='text-right'>Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredSuppliers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className='h-24 text-center'>
+                <TableCell
+                  colSpan={canEdit ? 6 : 5}
+                  className='h-24 text-center'
+                >
                   {searchValue
                     ? 'No suppliers match your search.'
                     : 'No suppliers found.'}
@@ -135,43 +143,45 @@ export function SupplierList({ suppliers }: { suppliers: Supplier[] }) {
                       : '-'}
                   </TableCell>
                   <TableCell>{supplier.supplierVehicles.length}</TableCell>
-                  <TableCell className='text-right'>
-                    <div className='flex justify-end gap-2'>
-                      <Button
-                        variant='ghost'
-                        size='sm'
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/dashboard/suppliers/${supplier.id}`);
-                        }}
-                      >
-                        <Edit className='h-4 w-4' />
-                      </Button>
-                      <Button
-                        variant='ghost'
-                        size='sm'
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          if (
-                            confirm(
-                              `Are you sure you want to delete ${supplier.name}?`
-                            )
-                          ) {
-                            // Handle delete
-                            const response = await fetch(
-                              `/api/suppliers/${supplier.id}`,
-                              { method: 'DELETE' }
-                            );
-                            if (response.ok) {
-                              router.refresh();
+                  {canEdit && (
+                    <TableCell className='text-right'>
+                      <div className='flex justify-end gap-2'>
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/dashboard/suppliers/${supplier.id}`);
+                          }}
+                        >
+                          <Edit className='h-4 w-4' />
+                        </Button>
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (
+                              confirm(
+                                `Are you sure you want to delete ${supplier.name}?`
+                              )
+                            ) {
+                              // Handle delete
+                              const response = await fetch(
+                                `/api/suppliers/${supplier.id}`,
+                                { method: 'DELETE' }
+                              );
+                              if (response.ok) {
+                                router.refresh();
+                              }
                             }
-                          }
-                        }}
-                      >
-                        <Trash2 className='h-4 w-4' />
-                      </Button>
-                    </div>
-                  </TableCell>
+                          }}
+                        >
+                          <Trash2 className='h-4 w-4' />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}

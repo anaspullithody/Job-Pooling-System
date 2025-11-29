@@ -30,7 +30,12 @@ interface Client {
   }>;
 }
 
-export function ClientList({ clients }: { clients: Client[] }) {
+interface ClientListProps {
+  clients: Client[];
+  canEdit?: boolean;
+}
+
+export function ClientList({ clients, canEdit = true }: ClientListProps) {
   const router = useRouter();
   const [searchValue, setSearchValue] = useState('');
 
@@ -75,13 +80,16 @@ export function ClientList({ clients }: { clients: Client[] }) {
               <TableHead>Phone</TableHead>
               <TableHead>Contacts</TableHead>
               <TableHead>Recent Jobs</TableHead>
-              <TableHead className='text-right'>Actions</TableHead>
+              {canEdit && <TableHead className='text-right'>Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredClients.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className='h-24 text-center'>
+                <TableCell
+                  colSpan={canEdit ? 5 : 4}
+                  className='h-24 text-center'
+                >
                   {searchValue
                     ? 'No clients match your search.'
                     : 'No clients found.'}
@@ -105,42 +113,44 @@ export function ClientList({ clients }: { clients: Client[] }) {
                       : '-'}
                   </TableCell>
                   <TableCell>{client.clientJobs.length}</TableCell>
-                  <TableCell className='text-right'>
-                    <div className='flex justify-end gap-2'>
-                      <Button
-                        variant='ghost'
-                        size='sm'
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/dashboard/clients/${client.id}`);
-                        }}
-                      >
-                        <Edit className='h-4 w-4' />
-                      </Button>
-                      <Button
-                        variant='ghost'
-                        size='sm'
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          if (
-                            confirm(
-                              `Are you sure you want to delete ${client.name}?`
-                            )
-                          ) {
-                            const response = await fetch(
-                              `/api/clients/${client.id}`,
-                              { method: 'DELETE' }
-                            );
-                            if (response.ok) {
-                              router.refresh();
+                  {canEdit && (
+                    <TableCell className='text-right'>
+                      <div className='flex justify-end gap-2'>
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/dashboard/clients/${client.id}`);
+                          }}
+                        >
+                          <Edit className='h-4 w-4' />
+                        </Button>
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (
+                              confirm(
+                                `Are you sure you want to delete ${client.name}?`
+                              )
+                            ) {
+                              const response = await fetch(
+                                `/api/clients/${client.id}`,
+                                { method: 'DELETE' }
+                              );
+                              if (response.ok) {
+                                router.refresh();
+                              }
                             }
-                          }
-                        }}
-                      >
-                        <Trash2 className='h-4 w-4' />
-                      </Button>
-                    </div>
-                  </TableCell>
+                          }}
+                        >
+                          <Trash2 className='h-4 w-4' />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}
