@@ -49,16 +49,12 @@ import * as React from 'react';
 import { Icons } from '../icons';
 import { OrgSwitcher } from '../org-switcher';
 export const company = {
-  name: 'Acme Inc',
+  name: 'Job Pooling',
   logo: IconPhotoUp,
   plan: 'Enterprise'
 };
 
-const tenants = [
-  { id: '1', name: 'Acme Inc' },
-  { id: '2', name: 'Beta Corp' },
-  { id: '3', name: 'Gamma Ltd' }
-];
+const tenants = [{ id: '1', name: 'Job Pooling' }];
 
 export default function AppSidebar() {
   const pathname = usePathname();
@@ -67,31 +63,41 @@ export default function AppSidebar() {
   const router = useRouter();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [companyName, setCompanyName] = useState<string>('Job Pooling');
 
   const handleSwitchTenant = (_tenantId: string) => {
     // Tenant switching functionality would be implemented here
   };
 
-  const activeTenant = tenants[0];
-
-  // Fetch user role
+  // Fetch user role and company name
   useEffect(() => {
-    const fetchUserRole = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/auth/role');
-        if (response.ok) {
-          const data = await response.json();
+        const [roleResponse, companyResponse] = await Promise.all([
+          fetch('/api/auth/role'),
+          fetch('/api/company/own')
+        ]);
+
+        if (roleResponse.ok) {
+          const data = await roleResponse.json();
           setUserRole(data.role);
         }
+
+        if (companyResponse.ok) {
+          const data = await companyResponse.json();
+          if (data.name) {
+            setCompanyName(data.name);
+          }
+        }
       } catch (error) {
-        console.error('Failed to fetch user role:', error);
+        console.error('Failed to fetch data:', error);
       } finally {
         setLoading(false);
       }
     };
 
     if (user) {
-      fetchUserRole();
+      fetchData();
     }
   }, [user]);
 
@@ -106,13 +112,18 @@ export default function AppSidebar() {
     // Side effects based on sidebar state changes
   }, [isOpen]);
 
+  // Update tenants with fetched company name
+  const updatedTenants = [{ id: '1', name: companyName }];
+  const activeTenant = updatedTenants[0];
+
   return (
     <Sidebar collapsible='icon'>
       <SidebarHeader>
         <OrgSwitcher
-          tenants={tenants}
+          tenants={updatedTenants}
           defaultTenant={activeTenant}
           onTenantSwitch={handleSwitchTenant}
+          companyName={companyName}
         />
       </SidebarHeader>
       <SidebarContent className='overflow-x-hidden'>
@@ -175,70 +186,6 @@ export default function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size='lg'
-                  className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
-                >
-                  {user && (
-                    <UserAvatarProfile
-                      className='h-8 w-8 rounded-lg'
-                      showInfo
-                      user={user}
-                    />
-                  )}
-                  <IconChevronsDown className='ml-auto size-4' />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className='w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg'
-                side='bottom'
-                align='end'
-                sideOffset={4}
-              >
-                <DropdownMenuLabel className='p-0 font-normal'>
-                  <div className='px-1 py-1.5'>
-                    {user && (
-                      <UserAvatarProfile
-                        className='h-8 w-8 rounded-lg'
-                        showInfo
-                        user={user}
-                      />
-                    )}
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-
-                <DropdownMenuGroup>
-                  <DropdownMenuItem
-                    onClick={() => router.push('/dashboard/profile')}
-                  >
-                    <IconUserCircle className='mr-2 h-4 w-4' />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <IconCreditCard className='mr-2 h-4 w-4' />
-                    Billing
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <IconBell className='mr-2 h-4 w-4' />
-                    Notifications
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <IconLogout className='mr-2 h-4 w-4' />
-                  <SignOutButton redirectUrl='/auth/sign-in' />
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

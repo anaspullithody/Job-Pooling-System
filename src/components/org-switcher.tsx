@@ -23,11 +23,13 @@ interface Tenant {
 export function OrgSwitcher({
   tenants,
   defaultTenant,
-  onTenantSwitch
+  onTenantSwitch,
+  companyName
 }: {
   tenants: Tenant[];
   defaultTenant: Tenant;
   onTenantSwitch?: (tenantId: string) => void;
+  companyName?: string;
 }) {
   const [selectedTenant, setSelectedTenant] = React.useState<
     Tenant | undefined
@@ -56,7 +58,9 @@ export function OrgSwitcher({
                 <GalleryVerticalEnd className='size-4' />
               </div>
               <div className='flex flex-col gap-0.5 leading-none'>
-                <span className='font-semibold'>Next Starter</span>
+                <span className='font-semibold'>
+                  {companyName || 'Job Pooling'}
+                </span>
                 <span className=''>{selectedTenant.name}</span>
               </div>
               <ChevronsUpDown className='ml-auto' />

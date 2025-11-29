@@ -150,6 +150,690 @@ async function main() {
   }
   console.log('✅ Created vehicle brands:', brands.length);
 
+  // Create master vehicle models
+  const models = [
+    // Toyota models
+    {
+      name: 'Camry',
+      brandName: 'Toyota',
+      category: 'Sedan',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'Corolla',
+      brandName: 'Toyota',
+      category: 'Sedan',
+      isPopular: true,
+      sortOrder: 2
+    },
+    {
+      name: 'Land Cruiser',
+      brandName: 'Toyota',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 3
+    },
+    {
+      name: 'Prado',
+      brandName: 'Toyota',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 4
+    },
+    {
+      name: 'Fortuner',
+      brandName: 'Toyota',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 5
+    },
+    {
+      name: 'Yaris',
+      brandName: 'Toyota',
+      category: 'Hatchback',
+      isPopular: true,
+      sortOrder: 6
+    },
+    {
+      name: 'Hilux',
+      brandName: 'Toyota',
+      category: 'Pickup Truck',
+      isPopular: true,
+      sortOrder: 7
+    },
+    {
+      name: 'RAV4',
+      brandName: 'Toyota',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 8
+    },
+    { name: 'Avalon', brandName: 'Toyota', category: 'Sedan', sortOrder: 9 },
+    {
+      name: 'Hiace',
+      brandName: 'Toyota',
+      category: 'Van / Mini Bus',
+      sortOrder: 10
+    },
+
+    // Nissan models
+    {
+      name: 'Altima',
+      brandName: 'Nissan',
+      category: 'Sedan',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'Patrol',
+      brandName: 'Nissan',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 2
+    },
+    {
+      name: 'X-Trail',
+      brandName: 'Nissan',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 3
+    },
+    {
+      name: 'Pathfinder',
+      brandName: 'Nissan',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 4
+    },
+    {
+      name: 'Maxima',
+      brandName: 'Nissan',
+      category: 'Sedan',
+      isPopular: true,
+      sortOrder: 5
+    },
+    {
+      name: 'Sunny',
+      brandName: 'Nissan',
+      category: 'Sedan',
+      isPopular: true,
+      sortOrder: 6
+    },
+    { name: 'Kicks', brandName: 'Nissan', category: 'SUV / 4x4', sortOrder: 7 },
+    {
+      name: 'Armada',
+      brandName: 'Nissan',
+      category: 'SUV / 4x4',
+      sortOrder: 8
+    },
+
+    // Honda models
+    {
+      name: 'Accord',
+      brandName: 'Honda',
+      category: 'Sedan',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'Civic',
+      brandName: 'Honda',
+      category: 'Sedan',
+      isPopular: true,
+      sortOrder: 2
+    },
+    {
+      name: 'CR-V',
+      brandName: 'Honda',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 3
+    },
+    {
+      name: 'HR-V',
+      brandName: 'Honda',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 4
+    },
+    {
+      name: 'City',
+      brandName: 'Honda',
+      category: 'Sedan',
+      isPopular: true,
+      sortOrder: 5
+    },
+    { name: 'Pilot', brandName: 'Honda', category: 'SUV / 4x4', sortOrder: 6 },
+
+    // BMW models
+    {
+      name: 'X5',
+      brandName: 'BMW',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'X6',
+      brandName: 'BMW',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 2
+    },
+    {
+      name: 'X7',
+      brandName: 'BMW',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 3
+    },
+    {
+      name: '5 Series',
+      brandName: 'BMW',
+      category: 'Luxury Car',
+      isPopular: true,
+      sortOrder: 4
+    },
+    {
+      name: '7 Series',
+      brandName: 'BMW',
+      category: 'Luxury Car',
+      isPopular: true,
+      sortOrder: 5
+    },
+    {
+      name: '3 Series',
+      brandName: 'BMW',
+      category: 'Sedan',
+      isPopular: true,
+      sortOrder: 6
+    },
+    { name: 'X3', brandName: 'BMW', category: 'SUV / 4x4', sortOrder: 7 },
+    { name: 'X1', brandName: 'BMW', category: 'SUV / 4x4', sortOrder: 8 },
+
+    // Mercedes-Benz models
+    {
+      name: 'S-Class',
+      brandName: 'Mercedes-Benz',
+      category: 'Luxury Car',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'E-Class',
+      brandName: 'Mercedes-Benz',
+      category: 'Luxury Car',
+      isPopular: true,
+      sortOrder: 2
+    },
+    {
+      name: 'C-Class',
+      brandName: 'Mercedes-Benz',
+      category: 'Sedan',
+      isPopular: true,
+      sortOrder: 3
+    },
+    {
+      name: 'GLE',
+      brandName: 'Mercedes-Benz',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 4
+    },
+    {
+      name: 'GLS',
+      brandName: 'Mercedes-Benz',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 5
+    },
+    {
+      name: 'G-Class',
+      brandName: 'Mercedes-Benz',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 6
+    },
+    {
+      name: 'GLC',
+      brandName: 'Mercedes-Benz',
+      category: 'SUV / 4x4',
+      sortOrder: 7
+    },
+    {
+      name: 'A-Class',
+      brandName: 'Mercedes-Benz',
+      category: 'Sedan',
+      sortOrder: 8
+    },
+
+    // Audi models
+    {
+      name: 'Q7',
+      brandName: 'Audi',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'Q8',
+      brandName: 'Audi',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 2
+    },
+    {
+      name: 'A6',
+      brandName: 'Audi',
+      category: 'Sedan',
+      isPopular: true,
+      sortOrder: 3
+    },
+    {
+      name: 'A8',
+      brandName: 'Audi',
+      category: 'Luxury Car',
+      isPopular: true,
+      sortOrder: 4
+    },
+    {
+      name: 'Q5',
+      brandName: 'Audi',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 5
+    },
+    { name: 'A4', brandName: 'Audi', category: 'Sedan', sortOrder: 6 },
+    { name: 'Q3', brandName: 'Audi', category: 'SUV / 4x4', sortOrder: 7 },
+
+    // Lexus models
+    {
+      name: 'LX',
+      brandName: 'Lexus',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'RX',
+      brandName: 'Lexus',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 2
+    },
+    {
+      name: 'ES',
+      brandName: 'Lexus',
+      category: 'Sedan',
+      isPopular: true,
+      sortOrder: 3
+    },
+    {
+      name: 'LS',
+      brandName: 'Lexus',
+      category: 'Luxury Car',
+      isPopular: true,
+      sortOrder: 4
+    },
+    { name: 'NX', brandName: 'Lexus', category: 'SUV / 4x4', sortOrder: 5 },
+    { name: 'UX', brandName: 'Lexus', category: 'SUV / 4x4', sortOrder: 6 },
+
+    // Land Rover / Range Rover models
+    {
+      name: 'Range Rover',
+      brandName: 'Range Rover',
+      category: 'Luxury Car',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'Range Rover Sport',
+      brandName: 'Range Rover',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 2
+    },
+    {
+      name: 'Range Rover Evoque',
+      brandName: 'Range Rover',
+      category: 'SUV / 4x4',
+      sortOrder: 3
+    },
+    {
+      name: 'Discovery',
+      brandName: 'Land Rover',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'Defender',
+      brandName: 'Land Rover',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 2
+    },
+
+    // Ford models
+    {
+      name: 'Explorer',
+      brandName: 'Ford',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'Expedition',
+      brandName: 'Ford',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 2
+    },
+    {
+      name: 'F-150',
+      brandName: 'Ford',
+      category: 'Pickup Truck',
+      isPopular: true,
+      sortOrder: 3
+    },
+    { name: 'Edge', brandName: 'Ford', category: 'SUV / 4x4', sortOrder: 4 },
+    {
+      name: 'Mustang',
+      brandName: 'Ford',
+      category: 'Sports Car',
+      sortOrder: 5
+    },
+
+    // Hyundai models
+    {
+      name: 'Tucson',
+      brandName: 'Hyundai',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'Santa Fe',
+      brandName: 'Hyundai',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 2
+    },
+    {
+      name: 'Sonata',
+      brandName: 'Hyundai',
+      category: 'Sedan',
+      isPopular: true,
+      sortOrder: 3
+    },
+    {
+      name: 'Elantra',
+      brandName: 'Hyundai',
+      category: 'Sedan',
+      isPopular: true,
+      sortOrder: 4
+    },
+    { name: 'Accent', brandName: 'Hyundai', category: 'Sedan', sortOrder: 5 },
+    {
+      name: 'Palisade',
+      brandName: 'Hyundai',
+      category: 'SUV / 4x4',
+      sortOrder: 6
+    },
+
+    // Kia models
+    {
+      name: 'Sportage',
+      brandName: 'Kia',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'Sorento',
+      brandName: 'Kia',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 2
+    },
+    {
+      name: 'Optima',
+      brandName: 'Kia',
+      category: 'Sedan',
+      isPopular: true,
+      sortOrder: 3
+    },
+    {
+      name: 'Cerato',
+      brandName: 'Kia',
+      category: 'Sedan',
+      isPopular: true,
+      sortOrder: 4
+    },
+    {
+      name: 'Telluride',
+      brandName: 'Kia',
+      category: 'SUV / 4x4',
+      sortOrder: 5
+    },
+    { name: 'Carnival', brandName: 'Kia', category: 'MPV', sortOrder: 6 },
+
+    // Mazda models
+    {
+      name: 'CX-5',
+      brandName: 'Mazda',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'CX-9',
+      brandName: 'Mazda',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 2
+    },
+    {
+      name: 'Mazda6',
+      brandName: 'Mazda',
+      category: 'Sedan',
+      isPopular: true,
+      sortOrder: 3
+    },
+    { name: 'Mazda3', brandName: 'Mazda', category: 'Sedan', sortOrder: 4 },
+    { name: 'CX-30', brandName: 'Mazda', category: 'SUV / 4x4', sortOrder: 5 },
+
+    // Mitsubishi models
+    {
+      name: 'Pajero',
+      brandName: 'Mitsubishi',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'Outlander',
+      brandName: 'Mitsubishi',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 2
+    },
+    {
+      name: 'Montero Sport',
+      brandName: 'Mitsubishi',
+      category: 'SUV / 4x4',
+      sortOrder: 3
+    },
+    {
+      name: 'Lancer',
+      brandName: 'Mitsubishi',
+      category: 'Sedan',
+      sortOrder: 4
+    },
+
+    // Chevrolet models
+    {
+      name: 'Tahoe',
+      brandName: 'Chevrolet',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'Suburban',
+      brandName: 'Chevrolet',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 2
+    },
+    {
+      name: 'Silverado',
+      brandName: 'Chevrolet',
+      category: 'Pickup Truck',
+      sortOrder: 3
+    },
+    {
+      name: 'Traverse',
+      brandName: 'Chevrolet',
+      category: 'SUV / 4x4',
+      sortOrder: 4
+    },
+
+    // GMC models
+    {
+      name: 'Yukon',
+      brandName: 'GMC',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'Sierra',
+      brandName: 'GMC',
+      category: 'Pickup Truck',
+      isPopular: true,
+      sortOrder: 2
+    },
+    { name: 'Acadia', brandName: 'GMC', category: 'SUV / 4x4', sortOrder: 3 },
+
+    // Porsche models
+    {
+      name: 'Cayenne',
+      brandName: 'Porsche',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'Macan',
+      brandName: 'Porsche',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 2
+    },
+    {
+      name: '911',
+      brandName: 'Porsche',
+      category: 'Sports Car',
+      isPopular: true,
+      sortOrder: 3
+    },
+    {
+      name: 'Panamera',
+      brandName: 'Porsche',
+      category: 'Luxury Car',
+      sortOrder: 4
+    },
+
+    // Dodge models
+    {
+      name: 'Durango',
+      brandName: 'Dodge',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 1
+    },
+    { name: 'Charger', brandName: 'Dodge', category: 'Sedan', sortOrder: 2 },
+    {
+      name: 'Challenger',
+      brandName: 'Dodge',
+      category: 'Sports Car',
+      sortOrder: 3
+    },
+
+    // Jeep models
+    {
+      name: 'Grand Cherokee',
+      brandName: 'Jeep',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'Wrangler',
+      brandName: 'Jeep',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 2
+    },
+    { name: 'Compass', brandName: 'Jeep', category: 'SUV / 4x4', sortOrder: 3 },
+
+    // Cadillac models
+    {
+      name: 'Escalade',
+      brandName: 'Cadillac',
+      category: 'SUV / 4x4',
+      isPopular: true,
+      sortOrder: 1
+    },
+    { name: 'XT5', brandName: 'Cadillac', category: 'SUV / 4x4', sortOrder: 2 },
+
+    // Tesla models
+    {
+      name: 'Model S',
+      brandName: 'Tesla',
+      category: 'Electric',
+      isPopular: true,
+      sortOrder: 1
+    },
+    {
+      name: 'Model 3',
+      brandName: 'Tesla',
+      category: 'Electric',
+      isPopular: true,
+      sortOrder: 2
+    },
+    {
+      name: 'Model X',
+      brandName: 'Tesla',
+      category: 'Electric',
+      isPopular: true,
+      sortOrder: 3
+    },
+    {
+      name: 'Model Y',
+      brandName: 'Tesla',
+      category: 'Electric',
+      isPopular: true,
+      sortOrder: 4
+    }
+  ];
+
+  for (const model of models) {
+    await prisma.vehicleModel.upsert({
+      where: {
+        name_brandName: {
+          name: model.name,
+          brandName: model.brandName
+        }
+      },
+      update: {},
+      create: model
+    });
+  }
+  console.log('✅ Created vehicle models:', models.length);
+
   // Create sample clients
   const client1 = await prisma.company.create({
     data: {

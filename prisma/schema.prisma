@@ -126,6 +126,21 @@ model VehicleBrand {
   @@index([isPopular])
 }
 
+model VehicleModel {
+  id          String   @id @default(cuid())
+  name        String   // e.g., "Camry", "Land Cruiser"
+  brandName   String   // References VehicleBrand.name
+  category    String?  // Optional category hint (Sedan, SUV, etc.)
+  isPopular   Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([name, brandName])
+  @@index([brandName])
+  @@index([isPopular])
+}
+
 model SupplierVehicle {
   id         String   @id @default(cuid())
   supplierId String

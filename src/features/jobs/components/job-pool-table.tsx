@@ -28,7 +28,7 @@ import { JobStatus } from '@/types/job';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
-import { MessageCircle, Pencil, Eye } from 'lucide-react';
+import { MessageCircle, Pencil, Eye, Trash2 } from 'lucide-react';
 import { formatWhatsAppMessage, copyToClipboard } from '@/lib/utils/whatsapp';
 import { toast } from 'sonner';
 
@@ -205,7 +205,54 @@ export function JobPoolTable({
           };
 
           return (
-            <div className='flex gap-2'>
+            <div className='flex gap-1'>
+              {/* View Button */}
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={() => router.push(`/dashboard/jobs/${job.id}`)}
+                title='View details'
+              >
+                <Eye className='h-4 w-4' />
+              </Button>
+
+              {/* Edit Button */}
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={() => router.push(`/dashboard/jobs/${job.id}/edit`)}
+                title='Edit job'
+              >
+                <Pencil className='h-4 w-4' />
+              </Button>
+
+              {/* Delete Button */}
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={async () => {
+                  if (confirm('Are you sure you want to delete this job?')) {
+                    try {
+                      const res = await fetch(`/api/jobs/${job.id}`, {
+                        method: 'DELETE'
+                      });
+                      if (res.ok) {
+                        toast.success('Job deleted successfully');
+                        router.refresh();
+                      } else {
+                        toast.error('Failed to delete job');
+                      }
+                    } catch (error) {
+                      toast.error('An error occurred');
+                    }
+                  }
+                }}
+                title='Delete job'
+              >
+                <Trash2 className='h-4 w-4' />
+              </Button>
+
+              {/* WhatsApp Button - only for ASSIGNED jobs */}
               {isAssigned && (
                 <Button
                   variant='ghost'
@@ -216,14 +263,6 @@ export function JobPoolTable({
                   <MessageCircle className='h-4 w-4' />
                 </Button>
               )}
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={() => router.push(`/dashboard/jobs/${job.id}`)}
-                title='View details'
-              >
-                <Eye className='h-4 w-4' />
-              </Button>
             </div>
           );
         },
@@ -289,10 +328,6 @@ export function JobPoolTable({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className='cursor-pointer'
-                  onClick={() =>
-                    router.push(`/dashboard/jobs/${row.original.id}`)
-                  }
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

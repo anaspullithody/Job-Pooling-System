@@ -11,7 +11,25 @@ import {
 import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
 import React from 'react';
 
-export default function OverViewLayout({
+async function getDashboardStats() {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api/dashboard/stats`, {
+      cache: 'no-store'
+    });
+
+    if (!res.ok) {
+      throw new Error('Failed to fetch stats');
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    return null;
+  }
+}
+
+export default async function OverViewLayout({
   sales,
   pie_stats,
   bar_stats,
@@ -22,6 +40,15 @@ export default function OverViewLayout({
   bar_stats: React.ReactNode;
   area_stats: React.ReactNode;
 }) {
+  const stats = await getDashboardStats();
+
+  const todayCount = stats?.todayJobs?.count || 0;
+  const todayTrend = stats?.todayJobs?.trend || 0;
+  const assignedCount = stats?.assignedJobs?.count || 0;
+  const poolCount = stats?.jobsInPool?.count || 0;
+  const completedCount = stats?.completedToday?.count || 0;
+  const completedRate = stats?.completedToday?.percentage || 0;
+
   return (
     <PageContainer>
       <div className='flex flex-1 flex-col space-y-2'>
@@ -32,104 +59,118 @@ export default function OverViewLayout({
         </div>
 
         <div className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-4'>
+          {/* Today's Jobs */}
           <Card className='@container/card'>
             <CardHeader>
-              <CardDescription>Total Revenue</CardDescription>
+              <CardDescription>Today&apos;s Jobs</CardDescription>
               <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-                $1,250.00
+                {todayCount}
               </CardTitle>
               <CardAction>
                 <Badge variant='outline'>
-                  <IconTrendingUp />
-                  +12.5%
+                  {todayTrend >= 0 ? <IconTrendingUp /> : <IconTrendingDown />}
+                  {todayTrend >= 0 ? '+' : ''}
+                  {todayTrend.toFixed(1)}%
                 </Badge>
               </CardAction>
             </CardHeader>
             <CardFooter className='flex-col items-start gap-1.5 text-sm'>
               <div className='line-clamp-1 flex gap-2 font-medium'>
-                Trending up this month <IconTrendingUp className='size-4' />
+                {todayTrend >= 0 ? 'Trending up' : 'Trending down'}{' '}
+                {todayTrend >= 0 ? (
+                  <IconTrendingUp className='size-4' />
+                ) : (
+                  <IconTrendingDown className='size-4' />
+                )}
+              </div>
+              <div className='text-muted-foreground'>Compared to yesterday</div>
+            </CardFooter>
+          </Card>
+
+          {/* Assigned Jobs */}
+          <Card className='@container/card'>
+            <CardHeader>
+              <CardDescription>Assigned Jobs</CardDescription>
+              <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
+                {assignedCount}
+              </CardTitle>
+              <CardAction>
+                <Badge variant='outline' className='bg-blue-500/10'>
+                  Active
+                </Badge>
+              </CardAction>
+            </CardHeader>
+            <CardFooter className='flex-col items-start gap-1.5 text-sm'>
+              <div className='line-clamp-1 flex gap-2 font-medium'>
+                Currently assigned to drivers
+              </div>
+              <div className='text-muted-foreground'>Jobs in progress</div>
+            </CardFooter>
+          </Card>
+
+          {/* Yet to Assign (Jobs in Pool) */}
+          <Card className='@container/card'>
+            <CardHeader>
+              <CardDescription>Yet to Assign</CardDescription>
+              <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
+                {poolCount}
+              </CardTitle>
+              <CardAction>
+                <Badge
+                  variant='outline'
+                  className={
+                    poolCount > 0
+                      ? 'bg-orange-500/10 text-orange-600'
+                      : 'bg-green-500/10 text-green-600'
+                  }
+                >
+                  {poolCount > 0 ? 'Needs attention' : 'All assigned'}
+                </Badge>
+              </CardAction>
+            </CardHeader>
+            <CardFooter className='flex-col items-start gap-1.5 text-sm'>
+              <div className='line-clamp-1 flex gap-2 font-medium'>
+                Jobs in pool
               </div>
               <div className='text-muted-foreground'>
-                Visitors for the last 6 months
+                Waiting for driver assignment
               </div>
             </CardFooter>
           </Card>
+
+          {/* Completed Today */}
           <Card className='@container/card'>
             <CardHeader>
-              <CardDescription>New Customers</CardDescription>
+              <CardDescription>Completed Today</CardDescription>
               <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-                1,234
+                {completedCount}
               </CardTitle>
               <CardAction>
-                <Badge variant='outline'>
-                  <IconTrendingDown />
-                  -20%
-                </Badge>
-              </CardAction>
-            </CardHeader>
-            <CardFooter className='flex-col items-start gap-1.5 text-sm'>
-              <div className='line-clamp-1 flex gap-2 font-medium'>
-                Down 20% this period <IconTrendingDown className='size-4' />
-              </div>
-              <div className='text-muted-foreground'>
-                Acquisition needs attention
-              </div>
-            </CardFooter>
-          </Card>
-          <Card className='@container/card'>
-            <CardHeader>
-              <CardDescription>Active Accounts</CardDescription>
-              <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-                45,678
-              </CardTitle>
-              <CardAction>
-                <Badge variant='outline'>
+                <Badge variant='outline' className='bg-green-500/10'>
                   <IconTrendingUp />
-                  +12.5%
+                  {completedRate.toFixed(0)}%
                 </Badge>
               </CardAction>
             </CardHeader>
             <CardFooter className='flex-col items-start gap-1.5 text-sm'>
               <div className='line-clamp-1 flex gap-2 font-medium'>
-                Strong user retention <IconTrendingUp className='size-4' />
+                Completion rate <IconTrendingUp className='size-4' />
               </div>
               <div className='text-muted-foreground'>
-                Engagement exceed targets
-              </div>
-            </CardFooter>
-          </Card>
-          <Card className='@container/card'>
-            <CardHeader>
-              <CardDescription>Growth Rate</CardDescription>
-              <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-                4.5%
-              </CardTitle>
-              <CardAction>
-                <Badge variant='outline'>
-                  <IconTrendingUp />
-                  +4.5%
-                </Badge>
-              </CardAction>
-            </CardHeader>
-            <CardFooter className='flex-col items-start gap-1.5 text-sm'>
-              <div className='line-clamp-1 flex gap-2 font-medium'>
-                Steady performance increase{' '}
-                <IconTrendingUp className='size-4' />
-              </div>
-              <div className='text-muted-foreground'>
-                Meets growth projections
+                {completedRate.toFixed(0)}% of today&apos;s jobs done
               </div>
             </CardFooter>
           </Card>
         </div>
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7'>
-          <div className='col-span-4'>{bar_stats}</div>
-          <div className='col-span-4 md:col-span-3'>
-            {/* sales arallel routes */}
-            {sales}
-          </div>
-          <div className='col-span-4'>{area_stats}</div>
-          <div className='col-span-4 md:col-span-3'>{pie_stats}</div>
+        <div className='grid grid-cols-1 gap-4 lg:grid-cols-7'>
+          {/* Daily Jobs Chart - 4 columns on large screens */}
+          <div className='col-span-1 lg:col-span-4'>{bar_stats}</div>
+
+          {/* Recent Jobs - 3 columns on large screens */}
+          <div className='col-span-1 lg:col-span-3'>{sales}</div>
+
+          {/* Active Jobs Table - Full width */}
+          <div className='col-span-1 lg:col-span-7'>{area_stats}</div>
         </div>
       </div>
     </PageContainer>

@@ -2,6 +2,7 @@ import { requireSuperAdmin } from '@/lib/auth/clerk';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CategoryManagement } from '@/features/admin/components/category-management';
 import { BrandManagement } from '@/features/admin/components/brand-management';
+import { ModelManagement } from '@/features/admin/components/model-management';
 
 export default async function VehicleMasterDataPage() {
   await requireSuperAdmin();
@@ -13,7 +14,7 @@ export default async function VehicleMasterDataPage() {
           Vehicle Master Data
         </h2>
         <p className='text-muted-foreground'>
-          Manage vehicle categories and brands for the system
+          Manage vehicle categories, brands, and models for the system
         </p>
       </div>
 
@@ -21,6 +22,7 @@ export default async function VehicleMasterDataPage() {
         <TabsList>
           <TabsTrigger value='categories'>Categories</TabsTrigger>
           <TabsTrigger value='brands'>Brands</TabsTrigger>
+          <TabsTrigger value='models'>Models</TabsTrigger>
         </TabsList>
 
         <TabsContent value='categories' className='space-y-4'>
@@ -29,6 +31,10 @@ export default async function VehicleMasterDataPage() {
 
         <TabsContent value='brands' className='space-y-4'>
           <BrandManagement />
+        </TabsContent>
+
+        <TabsContent value='models' className='space-y-4'>
+          <ModelManagement />
         </TabsContent>
       </Tabs>
     </div>

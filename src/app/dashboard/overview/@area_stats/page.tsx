@@ -1,7 +1,5 @@
-import { delay } from '@/constants/mock-api';
-import { AreaGraph } from '@/features/overview/components/area-graph';
+import { ActiveJobsTable } from '@/features/overview/components/active-jobs-table';
 
 export default async function AreaStats() {
-  await await delay(2000);
-  return <AreaGraph />;
+  return <ActiveJobsTable />;
 }

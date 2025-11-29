@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -17,12 +17,14 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
+  FormDescription
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Combobox } from '@/components/ui/combobox';
 
 const categorySchema = z.object({
   category: z.string().min(1, 'Category name is required'),
@@ -51,6 +53,10 @@ export function CategoryDialog({
   category
 }: CategoryDialogProps) {
   const [loading, setLoading] = useState(false);
+  const [masterCategories, setMasterCategories] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
   const isEditing = !!category;
 
   const form = useForm<CategoryFormData>({
@@ -60,6 +66,33 @@ export function CategoryDialog({
       vehicleCount: category?.vehicleCount || 0
     }
   });
+
+  // Fetch master categories when dialog opens
+  useEffect(() => {
+    if (open) {
+      const fetchCategories = async () => {
+        setLoadingCategories(true);
+        try {
+          const res = await fetch('/api/vehicle-categories');
+          if (res.ok) {
+            const data = await res.json();
+            setMasterCategories(data.categories || []);
+          }
+        } catch (error) {
+          console.error('Failed to fetch categories:', error);
+        } finally {
+          setLoadingCategories(false);
+        }
+      };
+      fetchCategories();
+
+      // Reset form when opening
+      form.reset({
+        category: category?.category || '',
+        vehicleCount: category?.vehicleCount || 0
+      });
+    }
+  }, [open, category, form]);
 
   const onSubmit = async (data: CategoryFormData) => {
     setLoading(true);
@@ -118,8 +151,24 @@ export function CategoryDialog({
               <FormItem>
                 <FormLabel>Category Name *</FormLabel>
                 <FormControl>
-                  <Input placeholder='e.g., Sedan, SUV' {...field} />
+                  <Combobox
+                    items={masterCategories.map((cat) => ({
+                      value: cat.name,
+                      label: cat.name
+                    }))}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    placeholder='Select category...'
+                    searchPlaceholder='Search categories...'
+                    emptyMessage='No categories found.'
+                    disabled={loadingCategories || isEditing}
+                  />
                 </FormControl>
+                <FormDescription>
+                  {isEditing
+                    ? 'Category cannot be changed after creation'
+                    : 'Select from master vehicle categories'}
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

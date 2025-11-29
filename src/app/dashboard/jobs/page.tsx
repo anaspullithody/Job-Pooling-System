@@ -12,8 +12,7 @@ async function getJobs(filters: {
   status?: string;
   clientId?: string;
   supplierId?: string;
-  dateFrom?: string;
-  dateTo?: string;
+  date?: string;
   search?: string;
   page?: string;
   limit?: string;
@@ -32,22 +31,26 @@ async function getJobs(filters: {
     where.status = filters.status;
   }
 
-  if (filters.clientId) {
+  if (filters.clientId && filters.clientId !== 'all') {
     where.clientId = filters.clientId;
   }
 
-  if (filters.supplierId) {
+  if (filters.supplierId && filters.supplierId !== 'all') {
     where.supplierId = filters.supplierId;
   }
 
-  if (filters.dateFrom || filters.dateTo) {
-    where.createdAt = {};
-    if (filters.dateFrom) {
-      where.createdAt.gte = new Date(filters.dateFrom);
-    }
-    if (filters.dateTo) {
-      where.createdAt.lte = new Date(filters.dateTo);
-    }
+  // Single date filter - filter jobs created on this specific day
+  if (filters.date) {
+    const selectedDate = new Date(filters.date);
+    const startOfDay = new Date(selectedDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(selectedDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    where.createdAt = {
+      gte: startOfDay,
+      lte: endOfDay
+    };
   }
 
   if (filters.search) {
@@ -96,6 +99,25 @@ async function getJobs(filters: {
   return { jobs: serializedJobs, total, page, limit };
 }
 
+async function getClientsAndSuppliers() {
+  await requireAdminOrAccountant();
+
+  const [clients, suppliers] = await Promise.all([
+    prisma.company.findMany({
+      where: { kind: 'CLIENT' },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' }
+    }),
+    prisma.company.findMany({
+      where: { kind: 'SUPPLIER' },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' }
+    })
+  ]);
+
+  return { clients, suppliers };
+}
+
 export default async function JobsPage({
   searchParams
 }: {
@@ -103,8 +125,7 @@ export default async function JobsPage({
     status?: string;
     clientId?: string;
     supplierId?: string;
-    dateFrom?: string;
-    dateTo?: string;
+    date?: string;
     search?: string;
     page?: string;
     limit?: string;
@@ -112,6 +133,7 @@ export default async function JobsPage({
 }) {
   const params = await searchParams;
   const { jobs, total, page, limit } = await getJobs(params);
+  const { clients, suppliers } = await getClientsAndSuppliers();
 
   // Check if user can edit
   const { getClerkUserRole } = await import('@/lib/auth/clerk');
@@ -134,7 +156,7 @@ export default async function JobsPage({
       </div>
 
       <Suspense fallback={<div>Loading filters...</div>}>
-        <JobFilters />
+        <JobFilters clients={clients} suppliers={suppliers} />
       </Suspense>
 
       <Suspense fallback={<div>Loading jobs...</div>}>

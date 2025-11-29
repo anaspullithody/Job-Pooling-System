@@ -77,6 +77,14 @@ interface MasterBrand {
   sortOrder: number;
 }
 
+interface VehicleModel {
+  id: string;
+  name: string;
+  brandName: string;
+  category?: string | null;
+  isPopular: boolean;
+}
+
 export function VehicleDialog({
   open,
   onOpenChange,
@@ -87,7 +95,9 @@ export function VehicleDialog({
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<MasterCategory[]>([]);
   const [brands, setBrands] = useState<MasterBrand[]>([]);
+  const [models, setModels] = useState<VehicleModel[]>([]);
   const [loadingData, setLoadingData] = useState(false);
+  const [loadingModels, setLoadingModels] = useState(false);
   const isEditing = !!vehicle;
 
   const form = useForm<VehicleFormData>({
@@ -101,6 +111,7 @@ export function VehicleDialog({
   });
 
   const selectedCategory = form.watch('category');
+  const selectedBrand = form.watch('brand');
   const isCustomCategory = selectedCategory === 'Custom/Special';
 
   // Fetch master categories and brands when dialog opens
@@ -132,6 +143,29 @@ export function VehicleDialog({
       fetchData();
     }
   }, [open]);
+
+  // Fetch models when brand changes (only if not custom category)
+  useEffect(() => {
+    if (selectedBrand && !isCustomCategory) {
+      const fetchModels = async () => {
+        setLoadingModels(true);
+        try {
+          const res = await fetch(`/api/vehicle-models?brand=${selectedBrand}`);
+          if (res.ok) {
+            const data = await res.json();
+            setModels(data.models || []);
+          }
+        } catch (error) {
+          console.error('Failed to fetch models:', error);
+        } finally {
+          setLoadingModels(false);
+        }
+      };
+      fetchModels();
+    } else {
+      setModels([]);
+    }
+  }, [selectedBrand, isCustomCategory]);
 
   const onSubmit = async (data: VehicleFormData) => {
     setLoading(true);
@@ -251,19 +285,40 @@ export function VehicleDialog({
                   {isCustomCategory ? 'Custom Vehicle Name *' : 'Model'}
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder={
-                      isCustomCategory
-                        ? 'e.g., Presidential Limousine, Vintage 1960 Rolls Royce'
-                        : 'e.g., Camry 2024, X5 M Sport'
-                    }
-                    {...field}
-                  />
+                  {/* Show Combobox if brand is selected and not custom category */}
+                  {selectedBrand && !isCustomCategory && models.length > 0 ? (
+                    <Combobox
+                      items={models.map((model) => ({
+                        value: model.name,
+                        label: model.name
+                      }))}
+                      value={field.value || ''}
+                      onValueChange={field.onChange}
+                      placeholder='Select model...'
+                      searchPlaceholder='Search models...'
+                      emptyMessage='No models found.'
+                      disabled={loadingModels}
+                    />
+                  ) : (
+                    <Input
+                      placeholder={
+                        isCustomCategory
+                          ? 'e.g., Presidential Limousine, Vintage 1960 Rolls Royce'
+                          : selectedBrand && loadingModels
+                            ? 'Loading models...'
+                            : 'e.g., Camry 2024, X5 M Sport'
+                      }
+                      {...field}
+                      disabled={loadingModels}
+                    />
+                  )}
                 </FormControl>
                 <FormDescription>
                   {isCustomCategory
                     ? 'Describe the special/custom vehicle'
-                    : 'Optional - Specific model name/year'}
+                    : selectedBrand && models.length > 0
+                      ? 'Select from popular models or type custom'
+                      : 'Optional - Specific model name/year'}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
