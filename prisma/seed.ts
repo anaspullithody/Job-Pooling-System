@@ -72,6 +72,84 @@ async function main() {
   });
   console.log('✅ Created DRIVER:', driver2.phone, `(${driver2.name})`);
 
+  // Create master vehicle categories
+  const categories = [
+    { name: 'Sedan', sortOrder: 1 },
+    { name: 'SUV / 4x4', sortOrder: 2 },
+    { name: 'Luxury Car', sortOrder: 3 },
+    { name: 'Economy Car', sortOrder: 4 },
+    { name: 'Van / Mini Bus', sortOrder: 5 },
+    { name: 'Coaster Bus', sortOrder: 6 },
+    { name: 'Sports Car', sortOrder: 7 },
+    { name: 'Limousine', sortOrder: 8 },
+    { name: 'Hybrid', sortOrder: 9 },
+    { name: 'Electric', sortOrder: 10 },
+    { name: 'Pickup Truck', sortOrder: 11 },
+    { name: 'Station Wagon', sortOrder: 12 },
+    { name: 'Hatchback', sortOrder: 13 },
+    { name: 'MPV', sortOrder: 14 },
+    { name: 'Custom/Special', sortOrder: 99, isCustom: true }
+  ];
+
+  for (const category of categories) {
+    await prisma.vehicleCategory.upsert({
+      where: { name: category.name },
+      update: {},
+      create: category
+    });
+  }
+  console.log('✅ Created vehicle categories:', categories.length);
+
+  // Create master vehicle brands
+  const brands = [
+    // Popular brands (UAE market)
+    { name: 'Toyota', isPopular: true, sortOrder: 1 },
+    { name: 'Nissan', isPopular: true, sortOrder: 2 },
+    { name: 'Honda', isPopular: true, sortOrder: 3 },
+    { name: 'Mazda', isPopular: true, sortOrder: 4 },
+    { name: 'Mitsubishi', isPopular: true, sortOrder: 5 },
+    { name: 'Hyundai', isPopular: true, sortOrder: 6 },
+    { name: 'Kia', isPopular: true, sortOrder: 7 },
+    { name: 'Chevrolet', isPopular: true, sortOrder: 8 },
+    { name: 'Ford', isPopular: true, sortOrder: 9 },
+    { name: 'Mercedes-Benz', isPopular: true, sortOrder: 10 },
+    { name: 'BMW', isPopular: true, sortOrder: 11 },
+    { name: 'Audi', isPopular: true, sortOrder: 12 },
+    { name: 'Lexus', isPopular: true, sortOrder: 13 },
+    { name: 'Land Rover', isPopular: true, sortOrder: 14 },
+    { name: 'Range Rover', isPopular: true, sortOrder: 15 },
+    // Other brands
+    { name: 'Volkswagen', sortOrder: 20 },
+    { name: 'Peugeot', sortOrder: 21 },
+    { name: 'Renault', sortOrder: 22 },
+    { name: 'Jeep', sortOrder: 23 },
+    { name: 'Dodge', sortOrder: 24 },
+    { name: 'GMC', sortOrder: 25 },
+    { name: 'Cadillac', sortOrder: 26 },
+    { name: 'Porsche', sortOrder: 27 },
+    { name: 'Jaguar', sortOrder: 28 },
+    { name: 'Volvo', sortOrder: 29 },
+    { name: 'Infiniti', sortOrder: 30 },
+    { name: 'Genesis', sortOrder: 31 },
+    { name: 'Tesla', sortOrder: 32 },
+    { name: 'BYD', sortOrder: 33 },
+    { name: 'MG', sortOrder: 34 },
+    { name: 'Suzuki', sortOrder: 35 },
+    { name: 'Subaru', sortOrder: 36 },
+    { name: 'Isuzu', sortOrder: 37 },
+    { name: 'Fiat', sortOrder: 38 },
+    { name: 'Other', sortOrder: 99 }
+  ];
+
+  for (const brand of brands) {
+    await prisma.vehicleBrand.upsert({
+      where: { name: brand.name },
+      update: {},
+      create: brand
+    });
+  }
+  console.log('✅ Created vehicle brands:', brands.length);
+
   // Create sample clients
   const client1 = await prisma.company.create({
     data: {

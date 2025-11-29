@@ -101,12 +101,38 @@ model SupplierCategory {
   @@index([companyId])
 }
 
+model VehicleCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  isCustom    Boolean  @default(false)
+  description String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+  @@index([sortOrder])
+}
+
+model VehicleBrand {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  isPopular   Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+  @@index([isPopular])
+}
+
 model SupplierVehicle {
   id         String   @id @default(cuid())
   supplierId String
-  category   String
-  regNumber  String
-  model      String?
+  category   String   // References VehicleCategory.name
+  brand      String?  // References VehicleBrand.name (optional for custom)
+  model      String?  // Free text (required when custom category)
+  regNumber  String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -115,7 +141,7 @@ model SupplierVehicle {
 
   @@index([supplierId])
   @@index([category])
-  @@index([regNumber])
+  @@index([brand])
 }
 
 model Job {

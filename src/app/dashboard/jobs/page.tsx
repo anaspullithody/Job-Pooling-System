@@ -113,16 +113,24 @@ export default async function JobsPage({
   const params = await searchParams;
   const { jobs, total, page, limit } = await getJobs(params);
 
+  // Check if user can edit
+  const { getClerkUserRole } = await import('@/lib/auth/clerk');
+  const { UserRole } = await import('@/types/user');
+  const role = await getClerkUserRole();
+  const canEdit = role === UserRole.SUPER_ADMIN;
+
   return (
     <div className='flex-1 space-y-4 p-4 pt-6 md:p-8'>
       <div className='flex items-center justify-between'>
         <h2 className='text-3xl font-bold tracking-tight'>Job Pool</h2>
-        <Link href='/dashboard/jobs/new'>
-          <Button>
-            <Plus className='mr-2 h-4 w-4' />
-            Create Job
-          </Button>
-        </Link>
+        {canEdit && (
+          <Link href='/dashboard/jobs/new'>
+            <Button>
+              <Plus className='mr-2 h-4 w-4' />
+              Create Job
+            </Button>
+          </Link>
+        )}
       </div>
 
       <Suspense fallback={<div>Loading filters...</div>}>

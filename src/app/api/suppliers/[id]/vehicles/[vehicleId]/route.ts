@@ -4,9 +4,10 @@ import { requireAdminOrAccountant } from '@/lib/auth/clerk';
 import { z } from 'zod';
 
 const updateVehicleSchema = z.object({
-  categoryId: z.string().optional(),
-  regNumber: z.string().min(1).optional(),
-  model: z.string().optional()
+  category: z.string().optional(),
+  brand: z.string().optional(),
+  model: z.string().optional(),
+  regNumber: z.string().optional()
 });
 
 // PATCH /api/suppliers/[id]/vehicles/[vehicleId] - Update vehicle

@@ -32,6 +32,7 @@ import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import { navItems } from '@/constants/data';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useUser } from '@clerk/nextjs';
+import { useState, useEffect } from 'react';
 import {
   IconBell,
   IconChevronRight,
@@ -64,11 +65,42 @@ export default function AppSidebar() {
   const { isOpen } = useMediaQuery();
   const { user } = useUser();
   const router = useRouter();
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
   const handleSwitchTenant = (_tenantId: string) => {
     // Tenant switching functionality would be implemented here
   };
 
   const activeTenant = tenants[0];
+
+  // Fetch user role
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        const response = await fetch('/api/auth/role');
+        if (response.ok) {
+          const data = await response.json();
+          setUserRole(data.role);
+        }
+      } catch (error) {
+        console.error('Failed to fetch user role:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchUserRole();
+    }
+  }, [user]);
+
+  // Filter navigation items based on user role
+  const filteredNavItems = navItems.filter((item) => {
+    if (!item.roles || item.roles.length === 0) return true; // No role restriction
+    if (!userRole) return false; // User role not loaded yet
+    return item.roles.includes(userRole as any);
+  });
 
   React.useEffect(() => {
     // Side effects based on sidebar state changes
@@ -87,7 +119,7 @@ export default function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Overview</SidebarGroupLabel>
           <SidebarMenu>
-            {navItems.map((item) => {
+            {filteredNavItems.map((item) => {
               const Icon = item.icon ? Icons[item.icon] : Icons.logo;
               return item?.items && item?.items?.length > 0 ? (
                 <Collapsible

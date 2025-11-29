@@ -11,6 +11,7 @@ export interface NavItem {
   description?: string;
   isActive?: boolean;
   items?: NavItem[];
+  roles?: ('SUPER_ADMIN' | 'ACCOUNTANT' | 'DRIVER')[]; // Restrict visibility by role
 }
 
 export interface NavItemWithChildren extends NavItem {

@@ -19,7 +19,8 @@ export const navItems: NavItem[] = [
     icon: 'dashboard',
     isActive: false,
     shortcut: ['j', 'j'],
-    items: [] // Empty array as there are no child items for Jobs
+    roles: ['SUPER_ADMIN', 'ACCOUNTANT'], // Visible to admins and accountants
+    items: []
   },
   {
     title: 'Suppliers',
@@ -27,7 +28,8 @@ export const navItems: NavItem[] = [
     icon: 'product',
     shortcut: ['s', 's'],
     isActive: false,
-    items: [] // No child items
+    roles: ['SUPER_ADMIN', 'ACCOUNTANT'], // Visible to admins and accountants
+    items: []
   },
   {
     title: 'Clients',
@@ -35,7 +37,8 @@ export const navItems: NavItem[] = [
     icon: 'billing',
     shortcut: ['c', 'c'],
     isActive: false,
-    items: [] // No child items
+    roles: ['SUPER_ADMIN', 'ACCOUNTANT'], // Visible to admins and accountants
+    items: []
   },
   {
     title: 'Reports',
@@ -43,7 +46,8 @@ export const navItems: NavItem[] = [
     icon: 'kanban',
     shortcut: ['r', 'r'],
     isActive: false,
-    items: [] // No child items
+    roles: ['SUPER_ADMIN', 'ACCOUNTANT'], // Visible to admins and accountants
+    items: []
   },
   {
     title: 'Drivers',
@@ -51,7 +55,8 @@ export const navItems: NavItem[] = [
     icon: 'userPen',
     shortcut: ['d', 'd'],
     isActive: false,
-    items: [] // No child items
+    roles: ['SUPER_ADMIN'], // SUPER_ADMIN only
+    items: []
   },
   {
     title: 'Users',
@@ -59,7 +64,23 @@ export const navItems: NavItem[] = [
     icon: 'user',
     shortcut: ['u', 'u'],
     isActive: false,
-    items: [] // No child items
+    roles: ['SUPER_ADMIN'], // SUPER_ADMIN only
+    items: []
+  },
+  {
+    title: 'Admin',
+    url: '#',
+    icon: 'settings',
+    isActive: false,
+    roles: ['SUPER_ADMIN'], // SUPER_ADMIN only
+    items: [
+      {
+        title: 'Vehicle Master Data',
+        url: '/dashboard/admin/vehicles',
+        icon: 'product',
+        shortcut: ['v', 'v']
+      }
+    ]
   },
   {
     title: 'Account',

@@ -2,7 +2,6 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -12,7 +11,8 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { JobStatus } from '@/types/job';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { TableSearch } from '@/components/ui/table-search';
 
 const statusOptions: { value: JobStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All Statuses' },
@@ -43,59 +43,59 @@ export function JobFilters() {
     router.push(`/dashboard/jobs?${params.toString()}`);
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateFilters('search', search);
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    updateFilters('search', value);
   };
 
   return (
     <div className='space-y-4 rounded-lg border p-4'>
-      <form onSubmit={handleSearch} className='flex items-end gap-4'>
-        <div className='flex-1'>
-          <Label htmlFor='search'>Search</Label>
-          <Input
-            id='search'
-            placeholder='Search by guest name, contact, pickup, or drop...'
+      <div className='flex flex-col gap-4'>
+        <div>
+          <Label className='mb-2 block'>Search Jobs</Label>
+          <TableSearch
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearchChange}
+            placeholder='Search by guest name, contact, pickup, drop, or flight...'
           />
         </div>
 
-        <div className='w-48'>
-          <Label htmlFor='status'>Status</Label>
-          <Select
-            value={status}
-            onValueChange={(value) => {
-              setStatus(value as JobStatus | 'all');
-              updateFilters('status', value);
+        <div className='flex items-end gap-4'>
+          <div className='w-48'>
+            <Label htmlFor='status'>Status</Label>
+            <Select
+              value={status}
+              onValueChange={(value) => {
+                setStatus(value as JobStatus | 'all');
+                updateFilters('status', value);
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button
+            type='button'
+            variant='outline'
+            onClick={() => {
+              setSearch('');
+              setStatus('all');
+              router.push('/dashboard/jobs');
             }}
           >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {statusOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            Clear All Filters
+          </Button>
         </div>
-
-        <Button type='submit'>Search</Button>
-        <Button
-          type='button'
-          variant='outline'
-          onClick={() => {
-            setSearch('');
-            setStatus('all');
-            router.push('/dashboard/jobs');
-          }}
-        >
-          Clear
-        </Button>
-      </form>
+      </div>
     </div>
   );
 }

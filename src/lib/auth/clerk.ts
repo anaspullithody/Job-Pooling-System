@@ -33,3 +33,8 @@ export async function requireSuperAdmin() {
 export async function requireAdminOrAccountant() {
   return requireRole([UserRole.SUPER_ADMIN, UserRole.ACCOUNTANT]);
 }
+
+export async function canEdit(): Promise<boolean> {
+  const role = await getClerkUserRole();
+  return role === UserRole.SUPER_ADMIN;
+}

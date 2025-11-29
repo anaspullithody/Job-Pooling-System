@@ -5,8 +5,9 @@ import { z } from 'zod';
 
 const createVehicleSchema = z.object({
   category: z.string().min(1, 'Category is required'),
-  regNumber: z.string().min(1, 'Registration number is required'),
-  model: z.string().optional()
+  brand: z.string().optional(),
+  model: z.string().optional(),
+  regNumber: z.string().optional()
 });
 
 // GET /api/suppliers/[id]/vehicles - List vehicles
@@ -59,8 +60,9 @@ export async function POST(
       data: {
         supplierId: id,
         category: validatedData.category,
-        regNumber: validatedData.regNumber,
-        model: validatedData.model
+        brand: validatedData.brand,
+        model: validatedData.model,
+        regNumber: validatedData.regNumber
       }
     });
 
