@@ -41,3 +41,4 @@ echo "Update your .env.local file with:"
 echo "DATABASE_URL=\"postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/$DB_NAME?schema=public\""
 echo ""
 
+

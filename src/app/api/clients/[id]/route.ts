@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
-import { requireSuperAdmin } from "@/lib/auth/clerk";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { requireSuperAdmin } from '@/lib/auth/clerk';
 
 // DELETE /api/clients/[id] - Delete client
 export async function DELETE(
@@ -13,19 +13,18 @@ export async function DELETE(
     const { id } = await params;
 
     await prisma.company.delete({
-      where: { id },
+      where: { id }
     });
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    if (error.message === "Unauthorized") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error("Error deleting client:", error);
+    console.error('Error deleting client:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-

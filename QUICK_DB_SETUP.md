@@ -64,3 +64,4 @@ npm run db:seed
 - Check if PostgreSQL is running: `brew services list | grep postgresql`
 - Start it: `brew services start postgresql@16`
 
+
